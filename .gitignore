@@ -1,0 +1,26 @@
+# Python venv and caching
+backend/venv/
+backend/__pycache__/
+backend/db.sqlite3
+backend/.env
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env*
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# OS files
+.DS_Store
+Thumbs.db
