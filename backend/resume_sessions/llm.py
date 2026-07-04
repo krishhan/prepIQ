@@ -64,10 +64,6 @@ def query_openrouter(messages, use_fallback=False, enforce_json=False):
     
     if api_key:
         api_key = api_key.strip()
-        
-    print(f"\n--- LLM DEBUG ---")
-    print(f"Key loaded: '{api_key[:12]}...' (total length: {len(api_key)})")
-    print(f"-----------------\n")
 
     if not api_key:
         raise LLMError("OpenRouter API key is missing. Please set OPENROUTER_API_KEY in your env.")

@@ -133,14 +133,10 @@ class MockInterviewDetailView(APIView):
         except MockInterview.DoesNotExist:
             return Response({"detail": "Mock interview not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Retrieve questions in the mock order
-        questions = []
-        for q_id in mock.question_order:
-            try:
-                q = InterviewQuestion.objects.get(id=q_id)
-                questions.append(q)
-            except InterviewQuestion.DoesNotExist:
-                pass
+        # Retrieve questions in the mock order via single optimized query
+        question_ids = mock.question_order
+        questions_dict = {q.id: q for q in InterviewQuestion.objects.filter(id__in=question_ids)}
+        questions = [questions_dict[q_id] for q_id in question_ids if q_id in questions_dict]
 
         serializer = MockInterviewSerializer(mock)
         questions_serialized = InterviewQuestionMockSerializer(questions, many=True)
@@ -386,14 +382,10 @@ class MockInterviewReportView(APIView):
         if mock.status != 'completed':
             return Response({"detail": f"Report is not ready. Status: {mock.status}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Retrieve questions in the mock order
-        questions = []
-        for q_id in mock.question_order:
-            try:
-                q = InterviewQuestion.objects.get(id=q_id)
-                questions.append(q)
-            except InterviewQuestion.DoesNotExist:
-                pass
+        # Retrieve questions in the mock order via single optimized query
+        question_ids = mock.question_order
+        questions_dict = {q.id: q for q in InterviewQuestion.objects.filter(id__in=question_ids)}
+        questions = [questions_dict[q_id] for q_id in question_ids if q_id in questions_dict]
 
         answers = mock.answers.all()
 
@@ -416,6 +408,7 @@ class SessionMockListView(APIView):
         except ResumeSession.DoesNotExist:
             return Response({"detail": "Session not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        mocks = session.mocks.all().order_by('-started_at')
+        # Optimization: Sort by primary key '-id' instead of '-started_at' to utilize PK index
+        mocks = session.mocks.all().order_by('-id')
         serializer = MockInterviewSerializer(mocks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -27,9 +27,14 @@ class ResumeSessionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'status', 'error_message', 'created_at')
 
     def get_question_count(self, obj):
+        if hasattr(obj, 'annotated_question_count'):
+            return obj.annotated_question_count
         return obj.questions.count()
 
     def get_best_mock_score(self, obj):
+        if hasattr(obj, 'annotated_best_mock_score'):
+            score = obj.annotated_best_mock_score
+            return score if score is not None else 0
         from django.db.models import Max
         score = obj.mocks.filter(status='completed').aggregate(Max('overall_score'))['overall_score__max']
         return score if score is not None else 0
@@ -43,6 +48,12 @@ class InterviewQuestionSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def get_confidence(self, obj):
+        if hasattr(obj, 'user_confidence'):
+            confs = obj.user_confidence
+            if confs:
+                return confs[0].level
+            return 'not_practiced'
+
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             from practice.models import QuestionConfidence

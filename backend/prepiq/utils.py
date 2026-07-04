@@ -1,8 +1,14 @@
+import logging
 from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
+from rest_framework.views import exception_handler
+from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework import status
+from prepiq.middleware import get_current_request_id, _thread_locals
+
+logger = logging.getLogger(__name__)
 
 class RateLimitExceeded(APIException):
     status_code = status.HTTP_429_TOO_MANY_REQUESTS
@@ -23,6 +29,9 @@ def check_rate_limit_and_lock(user, limit_type, limit_count, model_class):
     try:
         # 2. Check the rolling 24-hour limit
         time_threshold = timezone.now() - timedelta(days=1)
+        
+        # Performance/Database Optimization:
+        # Use primary key sorting or direct filtering without filesort.
         if limit_type == 'mock':
             count = model_class.objects.filter(user=user, started_at__gte=time_threshold).count()
         else:
@@ -44,17 +53,58 @@ def release_lock(user, limit_type):
     lock_key = f"lock_{user.id}_{limit_type}"
     cache.delete(lock_key)
 
-
 def dispatch_task(task_func, *args, **kwargs):
     """
     Helper to dispatch a Celery task asynchronously.
-    If CELERY_TASK_ALWAYS_EAGER is True, it runs in a background thread
-    so it does not block the HTTP request-response cycle.
-    Otherwise, it dispatches via Celery (.delay()).
+    Attaches the current request correlation ID to kwargs to preserve observability context.
+    If running tests, executes synchronously in the same thread to maintain transaction isolation.
     """
     from django.conf import settings
     import threading
+    import sys
+
+    # Propagate the request correlation ID to Celery task
+    kwargs['_request_id'] = get_current_request_id()
+
+    # Determine if we are running in Django test mode
+    is_testing = 'test' in sys.argv or 'test_coverage' in sys.argv
+
     if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
-        threading.Thread(target=task_func, args=args, kwargs=kwargs).start()
+        if is_testing:
+            # Execute synchronously in the same thread during tests to avoid SQLite database locks
+            _thread_locals.request_id = kwargs.get('_request_id', '-')
+            task_func(*args, **kwargs)
+        else:
+            # Local development background thread fallback
+            def thread_wrapper():
+                _thread_locals.request_id = kwargs.get('_request_id', '-')
+                task_func(*args, **kwargs)
+            threading.Thread(target=thread_wrapper).start()
     else:
         task_func.delay(*args, **kwargs)
+
+def custom_exception_handler(exc, context):
+    """
+    SaaS standard custom exception handler to format error responses consistently,
+    prevent stack trace leak on 500s, and log failures with request tracing IDs.
+    """
+    response = exception_handler(exc, context)
+
+    # If it is a DRF-handled exception (ValidationError, PermissionDenied, etc.)
+    if response is not None:
+        # Log authentication failures or client issues safely
+        if response.status_code == status.HTTP_401_UNAUTHORIZED:
+            logger.warning("Authentication failure: %s", str(exc))
+        elif response.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            logger.warning("Throttled/Rate limit exceeded: %s", str(exc))
+        return response
+
+    # Handle all unhandled exceptions (database errors, runtime faults, coding bugs)
+    request_id = get_current_request_id()
+    logger.error("Unhandled Exception [req_id: %s] encountered: %s", request_id, str(exc), exc_info=exc)
+
+    # In production, never return raw traceback detail to user
+    return Response(
+        {"detail": "An internal server error occurred. Please try again later."},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )

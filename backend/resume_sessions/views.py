@@ -22,7 +22,11 @@ class ResumeSessionListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        sessions = ResumeSession.objects.filter(user=request.user).order_by('-created_at')
+        from django.db.models import Count, Max, Q
+        sessions = ResumeSession.objects.filter(user=request.user).annotate(
+            annotated_question_count=Count('questions', distinct=True),
+            annotated_best_mock_score=Max('mocks__overall_score', filter=Q(mocks__status='completed'))
+        ).order_by('-created_at')
         # Note: Pagination is deferred post-MVP as per requirements
         serializer = ResumeSessionSerializer(sessions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -47,9 +51,13 @@ class ResumeSessionListView(APIView):
         if not pdf_file:
             return Response({"detail": "No resume file was uploaded."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. File size and magic bytes validation
+        # 2. File type, MIME type, and size validation
         if not pdf_file.name.lower().endswith('.pdf'):
             return Response({"detail": "Only PDF files are supported."}, status=status.HTTP_400_BAD_REQUEST)
+
+        content_type = getattr(pdf_file, 'content_type', '')
+        if content_type != 'application/pdf':
+            return Response({"detail": "Only PDF files are supported (MIME type mismatch)."}, status=status.HTTP_400_BAD_REQUEST)
 
         if pdf_file.size > 5 * 1024 * 1024:
             return Response({"detail": "File size exceeds the 5MB limit."}, status=status.HTTP_400_BAD_REQUEST)
@@ -59,8 +67,9 @@ class ResumeSessionListView(APIView):
             pdf_file.seek(0)
             if magic_bytes != b'%PDF':
                 return Response({"detail": "Invalid file format. File is not a valid PDF."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception:
-            return Response({"detail": "Could not read upload file header."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error("Failed to read PDF file header: %s", str(e))
+            return Response({"detail": "Could not read uploaded file header."}, status=status.HTTP_400_BAD_REQUEST)
 
         # 3. Rate limiting and concurrency check
         try:
@@ -174,7 +183,17 @@ class SessionQuestionsListView(APIView):
         except ResumeSession.DoesNotExist:
             return Response({"detail": "Session not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        questions = session.questions.all()
+        # Prefetch user confidence scores to avoid N+1 queries in the serializer loop
+        from practice.models import QuestionConfidence
+        from django.db.models import Prefetch
+
+        questions = session.questions.prefetch_related(
+            Prefetch(
+                'confidences',
+                queryset=QuestionConfidence.objects.filter(user=request.user),
+                to_attr='user_confidence'
+            )
+        )
 
         # Query param filters
         category = request.query_params.get('category')

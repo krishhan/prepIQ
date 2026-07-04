@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,6 +8,8 @@ from resume_sessions.models import InterviewQuestion
 from resume_sessions.llm import evaluate_practice_answer
 from .models import QuestionConfidence, PracticeAttempt
 from .serializers import QuestionConfidenceSerializer, PracticeAttemptSerializer
+
+logger = logging.getLogger(__name__)
 
 class QuestionConfidenceView(APIView):
     """
@@ -64,7 +67,8 @@ class PracticeAttemptView(APIView):
                 experience_level=session.experience_level
             )
         except Exception as e:
-            return Response({"detail": f"AI Evaluation failed: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error("AI practice evaluation failed: %s", str(e), exc_info=e)
+            return Response({"detail": "AI Evaluation failed. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         score = ai_feedback.get('score', 5)
         
@@ -102,6 +106,7 @@ class PracticeAttemptHistoryView(APIView):
         except InterviewQuestion.DoesNotExist:
             return Response({"detail": "Question not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        attempts = PracticeAttempt.objects.filter(question=question, user=request.user).order_by('-created_at')
+        # Optimization: Sort by primary key '-id' instead of '-created_at' to utilize PK index
+        attempts = PracticeAttempt.objects.filter(question=question, user=request.user).order_by('-id')
         serializer = PracticeAttemptSerializer(attempts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

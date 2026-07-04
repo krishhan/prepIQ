@@ -16,7 +16,7 @@ class ResumeSession(models.Model):
     experience_level = models.CharField(max_length=100)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing')
     error_message = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.user.email} - {self.job_role} ({self.experience_level})"

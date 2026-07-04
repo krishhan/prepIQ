@@ -37,7 +37,7 @@ class JWTCookieAuthentication(JWTAuthentication):
             validated_token = self.get_validated_token(raw_token)
             return self.get_user(validated_token), validated_token
         except (InvalidToken, AuthenticationFailed) as e:
-            return None
+            raise AuthenticationFailed("Token is invalid or expired.")
 
     def enforce_csrf(self, request):
         """

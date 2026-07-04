@@ -40,6 +40,8 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
   // Keep references to handle intervals cleanly
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const transitionRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const stepIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -93,6 +95,8 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
   const clearAllTimers = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (transitionRef.current) clearInterval(transitionRef.current);
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    if (stepIntervalRef.current) clearInterval(stepIntervalRef.current);
   };
 
   // 3s Transition Breath Screen
@@ -269,7 +273,7 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
     setFinalizeStep(0);
     
     // Cycle evaluation loading steps in background UI
-    const stepInterval = setInterval(() => {
+    stepIntervalRef.current = setInterval(() => {
       setFinalizeStep((prev) => (prev < EVALUATION_STEPS.length - 1 ? prev + 1 : prev));
     }, 4000);
 
@@ -277,24 +281,21 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
       try {
         const res = await mockApi.status(mockId);
         if (res.status === 'completed') {
-          clearInterval(stepInterval);
-          clearInterval(pollInterval);
+          clearAllTimers();
           router.push(`/sessions/${sessionId}/mock/${mockId}/report`);
         } else if (res.status === 'failed') {
-          clearInterval(stepInterval);
-          clearInterval(pollInterval);
+          clearAllTimers();
           setIsFinalizing(false);
           setError(res.error_message || "AI report generation failed.");
         }
       } catch (err) {
-        clearInterval(stepInterval);
-        clearInterval(pollInterval);
+        clearAllTimers();
         setIsFinalizing(false);
         setError("Failed to check report generation progress.");
       }
     };
 
-    const pollInterval = setInterval(pollStatus, 2500);
+    pollIntervalRef.current = setInterval(pollStatus, 2500);
   };
 
   // Helper formatting for seconds to MM:SS

@@ -8,16 +8,29 @@ from .llm import generate_interview_questions, LLMError, LLMRateLimitError
 
 logger = logging.getLogger(__name__)
 
-@shared_task
-def generate_questions_task(session_id):
+@shared_task(bind=True, max_retries=3)
+def generate_questions_task(self, session_id, **kwargs):
     """
     Background Celery task that parses the decrypted resume text, calls the OpenRouter
     integration to generate questions, and populates the database.
     """
+    from prepiq.middleware import _thread_locals
+    from celery.exceptions import MaxRetriesExceededError
+
+    # Propagate the request correlation ID to the Celery execution thread
+    _thread_locals.request_id = kwargs.get('_request_id', '-')
+
     try:
         session = ResumeSession.objects.get(id=session_id)
     except ResumeSession.DoesNotExist:
         logger.error(f"ResumeSession with ID {session_id} does not exist.")
+        return
+
+    # Idempotency check: if questions already exist, avoid duplicate generation
+    if session.questions.exists():
+        logger.warning(f"Questions already generated for Session {session_id}. Skipping generation.")
+        session.status = 'ready'
+        session.save(update_fields=['status'])
         return
 
     session.status = 'processing'
@@ -79,17 +92,23 @@ def generate_questions_task(session_id):
         session.save(update_fields=['status'])
         logger.info(f"Successfully generated questions for Session {session_id}")
 
-    except LLMRateLimitError as e:
-        session.status = 'failed'
-        session.error_message = f"OpenRouter API rate limit reached: {str(e)}"
-        session.save(update_fields=['status', 'error_message'])
-        logger.error(f"Rate limit failed questions generation for Session {session_id}: {str(e)}")
+    except (LLMRateLimitError, LLMError) as exc:
+        logger.warning(f"Temporary LLM failure generating questions for Session {session_id}: {str(exc)}. Retrying...")
+        try:
+            # Exponential backoff countdown: 4s, 8s, 16s
+            countdown = min(2 ** (self.request.retries + 2), 30)
+            self.retry(exc=exc, countdown=countdown)
+        except MaxRetriesExceededError:
+            session.status = 'failed'
+            session.error_message = "Failed to generate questions. AI provider is currently unreachable. Please try again."
+            session.save(update_fields=['status', 'error_message'])
+            logger.error(f"Max retries exceeded for generating questions for Session {session_id}: {str(exc)}")
 
     except Exception as e:
         session.status = 'failed'
-        session.error_message = f"Failed to generate questions: {str(e)}"
+        session.error_message = "An internal server error occurred while analyzing the resume. Please try again."
         session.save(update_fields=['status', 'error_message'])
-        logger.error(f"Failed questions generation for Session {session_id}: {str(e)}")
+        logger.error(f"Failed questions generation for Session {session_id}: {str(e)}", exc_info=e)
 
 
 @shared_task
