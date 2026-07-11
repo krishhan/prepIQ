@@ -22,9 +22,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className={`${inter.variable} min-h-full flex flex-col bg-zinc-950 text-zinc-100 antialiased`}>
+      <body className={`${inter.variable} min-h-full flex flex-col bg-[var(--background)] text-zinc-100 antialiased relative overflow-x-hidden selection:bg-violet-400/20 selection:text-violet-100`}>
+        {/* Ambient background glows */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/[0.03] rounded-full blur-[120px] pointer-events-none z-0 animate-glow-pulse" />
+        <div className="absolute bottom-1/4 left-0 w-[600px] h-[600px] bg-violet-800/[0.02] rounded-full blur-[150px] pointer-events-none z-0" />
+
         <AuthProvider>
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col z-10 relative">
             {children}
           </div>
         </AuthProvider>

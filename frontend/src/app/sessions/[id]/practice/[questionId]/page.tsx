@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Header from 'src/components/Header';
 import { questionsApi, sessionsApi } from 'src/lib/api';
 import { InterviewQuestion, PracticeAttempt, ResumeSession } from 'src/lib/types';
-import { ArrowLeft, AlertCircle, Send, Award, CheckCircle, HelpCircle, RefreshCw, ThumbsUp, MessageCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Send, Award, CheckCircle, HelpCircle, RefreshCw, MessageSquare, Clock } from 'lucide-react';
 import DifficultyBadge from 'src/components/DifficultyBadge';
 
 export default function PracticeQuestionPage({ params }: { params: Promise<{ id: string; questionId: string }> }) {
@@ -79,21 +79,21 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-zinc-950">
+    <div className="flex-1 flex flex-col min-h-screen bg-[var(--background)]">
       <Header />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:px-8 space-y-8 animate-fade-in">
         {/* Back Link */}
         <Link
           href={`/sessions/${sessionId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-200 transition-colors mb-6 font-semibold"
+          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition-colors mb-4"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Question Bank
+          <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Back to Question Bank
         </Link>
 
         {error && (
-          <div className="flex items-center gap-3 p-4 mb-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs font-medium">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
@@ -104,40 +104,40 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
             <div className="h-60 bg-zinc-900 rounded-3xl animate-pulse" />
           </div>
         ) : !question ? (
-          <div className="glass-panel p-12 rounded-3xl text-center border border-zinc-800">
-            <AlertCircle className="w-12 h-12 text-zinc-500 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-zinc-200">Question Not Found</h3>
-            <p className="text-zinc-500 text-sm mt-2 mb-6">The requested interview question could not be loaded.</p>
-            <Link href={`/sessions/${sessionId}`} className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-2xl text-sm font-semibold text-white border border-zinc-800 transition-colors">
+          <div className="premium-card p-12 text-center max-w-md mx-auto flex flex-col items-center">
+            <AlertCircle className="w-10 h-10 text-zinc-500 mb-4" strokeWidth={1.5} />
+            <h3 className="text-base font-bold text-zinc-200">Question Not Found</h3>
+            <p className="text-zinc-500 text-xs mt-2 mb-6 font-medium">The requested interview question could not be loaded.</p>
+            <Link href={`/sessions/${sessionId}`} className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-xl text-xs font-bold uppercase tracking-wider text-white border border-white/[0.06] transition-colors">
               Return to Question Bank
             </Link>
           </div>
         ) : (
           <div className="space-y-8">
             {/* Question Details Header Card */}
-            <section className="glass-panel p-6 rounded-3xl border border-zinc-800 space-y-4">
+            <section className="premium-card p-6 sm:p-8 space-y-4">
               <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-violet-400 px-2 py-0.5 rounded-full bg-violet-500/5 border border-violet-500/10">
                   {question.category}
                 </span>
                 <DifficultyBadge difficulty={question.difficulty} />
               </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-zinc-100 leading-snug">
+              <h2 className="text-xl sm:text-2xl font-black text-white leading-snug tracking-tight">
                 {question.question_text}
               </h2>
               
-              <div className="border-t border-zinc-900 pt-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Why are hiring managers asking this?</span>
-                <p className="text-zinc-400 text-sm mt-1 leading-relaxed">{question.why_asked}</p>
+              <div className="border-t border-white/[0.04] pt-4 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Why are hiring managers asking this?</span>
+                <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium">{question.why_asked}</p>
               </div>
             </section>
 
             {/* Answer practice form and AI feedback side-by-side or stacked */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Form Input panel */}
-              <section className="lg:col-span-7 glass-panel p-6 rounded-3xl border border-zinc-800 space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <MessageCircle className="w-4 h-4 text-indigo-400" /> Draft Your Response
+              <section className="lg:col-span-7 premium-card p-6 space-y-5">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4 text-violet-400" strokeWidth={1.5} /> Draft Your Response
                 </h3>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -147,21 +147,21 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
                     onChange={(e) => setUserAnswer(e.target.value)}
                     required
                     placeholder="Provide a detailed answer using the STAR method (Situation, Task, Action, Result) if behavioral, or outline your design/strategy decisions if technical..."
-                    className="block w-full p-4 bg-zinc-950 border border-zinc-850 rounded-2xl text-zinc-200 placeholder-zinc-650 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm leading-relaxed"
+                    className="focus-ring-premium block w-full p-4 bg-[#0c0c0e] border border-white/[0.06] rounded-2xl text-zinc-200 placeholder-zinc-700 text-xs sm:text-sm leading-relaxed font-medium"
                   />
 
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full flex justify-center items-center gap-1.5 py-4 px-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-sm font-bold text-white transition-all shadow-md hover:shadow-indigo-500/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex justify-center items-center gap-1.5 py-4 px-4 bg-violet-600 hover:bg-violet-500 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all shadow-md shadow-violet-500/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95"
                   >
                     {submitting ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin" /> Evaluating with AI Coach...
+                        <RefreshCw className="w-4 h-4 animate-spin" strokeWidth={1.5} /> Evaluating with AI Coach...
                       </>
                     ) : (
                       <>
-                        Submit for Grading <Send className="w-4 h-4" />
+                        Submit for Grading <Send className="w-4 h-4" strokeWidth={1.5} />
                       </>
                     )}
                   </button>
@@ -171,64 +171,66 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
               {/* AI Feedback panel */}
               <section className="lg:col-span-5 space-y-6">
                 {latestAttempt ? (
-                  <div className="glass-panel p-6 rounded-3xl border border-zinc-800 space-y-6">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                      <Award className="w-4 h-4 text-purple-400" /> AI Coach Grading
+                  <div className="premium-card p-6 space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-violet-400" strokeWidth={1.5} /> AI Coach Grading
                     </h3>
 
                     {/* Score display */}
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center text-center">
-                        <span className="text-2xl font-black text-indigo-400">{latestAttempt.ai_feedback.score}</span>
-                        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none">/ 10</span>
+                    <div className="flex items-center gap-4 bg-[#0c0c0e]/30 border border-white/[0.03] p-4 rounded-2xl">
+                      <div className="w-14 h-14 rounded-xl bg-violet-500/5 border border-violet-500/10 flex flex-col items-center justify-center text-center">
+                        <span className="text-xl font-black text-violet-400 leading-none">{latestAttempt.ai_feedback.score}</span>
+                        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none mt-1">/ 10</span>
                       </div>
-                      <div>
-                        <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Communication Quality</span>
-                        <p className="text-zinc-200 font-bold mt-0.5">{latestAttempt.ai_feedback.communication_quality}</p>
+                      <div className="space-y-0.5">
+                        <span className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">Communication Quality</span>
+                        <p className="text-zinc-200 font-bold text-xs sm:text-sm">{latestAttempt.ai_feedback.communication_quality}</p>
                       </div>
                     </div>
 
                     {/* Strengths */}
-                    <div className="border-t border-zinc-900 pt-4">
-                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5" /> Strengths
+                    <div className="border-t border-white/[0.04] pt-4 space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5" strokeWidth={1.5} /> Strengths
                       </span>
-                      <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 mt-2 pl-1">
+                      <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 font-medium leading-relaxed">
                         {latestAttempt.ai_feedback.strengths.map((str, idx) => (
-                          <li key={idx} className="leading-relaxed">{str}</li>
+                          <li key={idx} className="marker:text-zinc-650">{str}</li>
                         ))}
                       </ul>
                     </div>
 
                     {/* Gaps / Missed Points */}
-                    <div className="border-t border-zinc-900 pt-4">
-                      <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                        <HelpCircle className="w-3.5 h-3.5" /> Key Gaps / Missed Points
+                    <div className="border-t border-white/[0.04] pt-4 space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.5} /> Key Gaps / Missed Points
                       </span>
                       {latestAttempt.ai_feedback.missed_points.length === 0 ? (
-                        <p className="text-zinc-500 text-xs mt-2 pl-1 italic">None! Excellent coverage of all key points.</p>
+                        <p className="text-zinc-500 text-xs pl-0.5 italic font-medium">None! Excellent coverage of all key points.</p>
                       ) : (
-                        <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 mt-2 pl-1">
+                        <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 font-medium leading-relaxed">
                           {latestAttempt.ai_feedback.missed_points.map((miss, idx) => (
-                            <li key={idx} className="leading-relaxed">{miss}</li>
+                            <li key={idx} className="marker:text-zinc-650">{miss}</li>
                           ))}
                         </ul>
                       )}
                     </div>
 
                     {/* Polished Answer */}
-                    <div className="border-t border-zinc-900 pt-4">
-                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 block mb-2">AI-Improved Response Draft</span>
-                      <div className="p-4 bg-zinc-950/80 rounded-2xl border border-zinc-900 text-zinc-400 text-xs leading-relaxed max-h-60 overflow-y-auto whitespace-pre-line font-medium">
+                    <div className="border-t border-white/[0.04] pt-4 space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">AI-Improved Response Draft</span>
+                      <div className="p-4 bg-[#0c0c0e] border border-white/[0.04] rounded-xl text-zinc-400 text-xs leading-relaxed max-h-60 overflow-y-auto whitespace-pre-line font-medium">
                         {latestAttempt.ai_feedback.improved_answer}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="glass-panel p-8 rounded-3xl text-center border border-zinc-800 flex flex-col justify-center items-center h-full min-h-[300px]">
-                    <Award className="w-8 h-8 text-zinc-600 mb-3" />
-                    <p className="text-zinc-500 text-sm font-semibold">No Evaluation Yet</p>
-                    <p className="text-zinc-650 text-xs mt-1.5 max-w-xs leading-normal">
+                  <div className="premium-card p-8 text-center flex flex-col justify-center items-center h-full min-h-[320px]">
+                    <div className="p-3 bg-white/[0.01] border border-white/[0.04] rounded-2xl mb-4 text-zinc-650">
+                      <Award className="w-6 h-6" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-zinc-400 text-xs font-bold uppercase tracking-wider">No Evaluation Yet</p>
+                    <p className="text-zinc-500 text-xs mt-2 max-w-xs leading-normal font-medium">
                       Submit your drafted response on the left. The AI coach will grade your communication quality and provide an improved model answer.
                     </p>
                   </div>
@@ -238,23 +240,24 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
 
             {/* Historical Attempts Section */}
             {attempts.length > 1 && (
-              <section className="glass-panel p-6 rounded-3xl border border-zinc-800 space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400">Past Practice Attempts ({attempts.length})</h3>
+              <section className="premium-card p-6 space-y-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Past Practice Attempts ({attempts.length})</h3>
                 <div className="space-y-3">
                   {attempts.slice(1).map((attempt, index) => (
                     <div
                       key={attempt.id}
-                      className="p-4 bg-zinc-900/40 border border-zinc-850 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm"
+                      className="p-4 bg-zinc-950/40 border border-white/[0.04] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-medium"
                     >
                       <div className="space-y-1">
-                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">
+                        <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider flex items-center gap-1">
+                          <Clock className="w-3 h-3" strokeWidth={1.5} />
                           Attempt #{attempts.length - 1 - index} • {new Date(attempt.created_at).toLocaleDateString()}
                         </p>
-                        <p className="text-zinc-300 line-clamp-1 italic max-w-xl">"{attempt.user_answer}"</p>
+                        <p className="text-zinc-300 line-clamp-1 italic">"{attempt.user_answer}"</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-zinc-500">Communication: <strong className="text-zinc-300 font-semibold">{attempt.ai_feedback.communication_quality}</strong></span>
-                        <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-extrabold rounded-lg text-xs">
+                        <span className="text-xs text-zinc-500">Communication: <strong className="text-zinc-300 font-bold">{attempt.ai_feedback.communication_quality}</strong></span>
+                        <div className="px-2.5 py-1 bg-violet-500/5 border border-violet-500/10 text-violet-400 font-extrabold rounded-lg text-[10px] uppercase tracking-wider">
                           {attempt.ai_feedback.score} / 10
                         </div>
                       </div>

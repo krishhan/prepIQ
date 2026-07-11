@@ -75,10 +75,23 @@ def dispatch_task(task_func, *args, **kwargs):
             _thread_locals.request_id = kwargs.get('_request_id', '-')
             task_func(*args, **kwargs)
         else:
-            # Local development background thread fallback
+            # Local development background thread fallback with retry support
             def thread_wrapper():
+                from celery.exceptions import Retry
+                import time
                 _thread_locals.request_id = kwargs.get('_request_id', '-')
-                task_func(*args, **kwargs)
+                max_attempts = 4
+                for attempt in range(max_attempts):
+                    try:
+                        task_func(*args, **kwargs)
+                        break
+                    except Retry:
+                        countdown = 5
+                        logger.info(f"Eager task retry triggered locally. Sleeping {countdown}s before retry...")
+                        time.sleep(countdown)
+                    except Exception as e:
+                        logger.error(f"Eager task crashed: {str(e)}", exc_info=e)
+                        break
             threading.Thread(target=thread_wrapper).start()
     else:
         task_func.delay(*args, **kwargs)

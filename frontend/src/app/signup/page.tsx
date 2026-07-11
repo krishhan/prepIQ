@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from 'src/components/AuthContext';
-import { Terminal, Lock, Mail, User, AlertTriangle } from 'lucide-react';
+import { Target, Lock, Mail, User, AlertTriangle } from 'lucide-react';
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -35,40 +35,40 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8 bg-zinc-950 relative overflow-hidden">
+    <div className="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8 bg-[var(--background)] relative overflow-hidden">
       {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-violet-600/[0.02] rounded-full blur-[100px]" />
+      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-violet-800/[0.01] rounded-full blur-[100px]" />
 
       <div className="w-full max-w-md z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-4 text-indigo-400">
-            <Terminal className="w-8 h-8" />
+          <div className="inline-flex items-center justify-center p-3 bg-violet-500/5 border border-violet-500/10 rounded-xl mb-4 text-[#8B5CF6] hover:scale-105 transition-transform duration-200">
+            <Target className="w-7 h-7" strokeWidth={1.5} />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-200 via-purple-200 to-indigo-200 bg-clip-text text-transparent">
-            Create your account
+          <h1 className="text-3xl font-black tracking-tight text-white font-sans">
+            Create account
           </h1>
-          <p className="text-zinc-400 mt-2">
+          <p className="text-zinc-400 text-xs mt-2 uppercase font-bold tracking-wider">
             Start preparing for your upcoming interviews today
           </p>
         </div>
 
-        <div className="glass-panel p-8 rounded-3xl shadow-2xl relative border border-zinc-800">
+        <div className="premium-card p-8">
           {error && (
-            <div className="flex items-center gap-3 p-4 mb-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs font-medium">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
               <span>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-zinc-300 mb-2">
+              <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
                 Full Name
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
-                  <User className="w-5 h-5" />
+                  <User className="w-4 h-4" strokeWidth={1.5} />
                 </div>
                 <input
                   id="name"
@@ -76,19 +76,19 @@ export default function SignupPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-zinc-900/60 border border-zinc-800 rounded-2xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm"
+                  className="focus-ring-premium block w-full pl-11 pr-4 py-3 bg-[#0c0c0e] border border-white/[0.06] rounded-xl text-zinc-100 placeholder-zinc-600 text-xs font-medium"
                   placeholder="John Doe"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
+              <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
                 Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
-                  <Mail className="w-5 h-5" />
+                  <Mail className="w-4 h-4" strokeWidth={1.5} />
                 </div>
                 <input
                   id="email"
@@ -96,19 +96,19 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-zinc-900/60 border border-zinc-800 rounded-2xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm"
+                  className="focus-ring-premium block w-full pl-11 pr-4 py-3 bg-[#0c0c0e] border border-white/[0.06] rounded-xl text-zinc-100 placeholder-zinc-600 text-xs font-medium"
                   placeholder="name@company.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-zinc-300 mb-2">
+              <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
-                  <Lock className="w-5 h-5" />
+                  <Lock className="w-4 h-4" strokeWidth={1.5} />
                 </div>
                 <input
                   id="password"
@@ -116,7 +116,7 @@ export default function SignupPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-zinc-900/60 border border-zinc-800 rounded-2xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm"
+                  className="focus-ring-premium block w-full pl-11 pr-4 py-3 bg-[#0c0c0e] border border-white/[0.06] rounded-xl text-zinc-100 placeholder-zinc-600 text-xs font-medium"
                   placeholder="At least 6 characters"
                 />
               </div>
@@ -125,19 +125,19 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-2xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg hover:shadow-indigo-500/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-violet-600 hover:bg-violet-500 transition-all shadow-md shadow-violet-500/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95"
             >
               {submitting ? (
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               ) : (
                 "Create Account"
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-zinc-500">Already have an account? </span>
-            <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+          <div className="mt-6 text-center text-xs">
+            <span className="text-zinc-500 font-medium">Already have an account? </span>
+            <Link href="/login" className="text-violet-400 hover:text-violet-300 font-bold transition-colors">
               Log in
             </Link>
           </div>

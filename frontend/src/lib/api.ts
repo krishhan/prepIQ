@@ -69,9 +69,12 @@ api.interceptors.response.use(
         // Retry the original request
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, user session is dead, redirect to login
+        // If refresh fails, user session is dead, redirect to login only if not already there
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          const path = window.location.pathname;
+          if (path !== '/login' && path !== '/signup') {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(refreshError);
       }

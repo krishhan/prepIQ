@@ -6,7 +6,7 @@ import Header from 'src/components/Header';
 import { useAuth } from 'src/components/AuthContext';
 import { sessionsApi } from 'src/lib/api';
 import { ResumeSession } from 'src/lib/types';
-import { Plus, BookOpen, Award, FileText, Trash2, ArrowRight, Activity, AlertCircle } from 'lucide-react';
+import { Plus, BookOpen, Award, FileText, Trash2, ArrowRight, Activity, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, refreshProfile } = useAuth();
@@ -50,72 +50,72 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-zinc-950">
+    <div className="flex-1 flex flex-col min-h-screen bg-[var(--background)]">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 sm:px-8 space-y-12 animate-fade-in">
         {/* Error alert */}
         {error && (
-          <div className="flex items-center gap-3 p-4 mb-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs font-medium">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
 
         {/* Stats Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          <div className="glass-panel p-6 rounded-3xl relative border border-zinc-800 flex items-center justify-between">
-            <div>
-              <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Total Sessions</p>
-              <h2 className="text-3xl font-extrabold text-zinc-100 mt-1">{user?.total_sessions || 0}</h2>
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="premium-card p-6 flex items-center justify-between">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Sessions</p>
+              <h2 className="text-3xl font-black text-white tracking-tight">{user?.total_sessions || 0}</h2>
             </div>
-            <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl">
-              <FileText className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="glass-panel p-6 rounded-3xl relative border border-zinc-800 flex items-center justify-between">
-            <div>
-              <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Mock Interviews</p>
-              <h2 className="text-3xl font-extrabold text-zinc-100 mt-1">{user?.total_mocks || 0}</h2>
-            </div>
-            <div className="p-3.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-2xl">
-              <Award className="w-6 h-6" />
+            <div className="p-3 bg-white/[0.02] border border-white/[0.04] text-zinc-400 rounded-xl">
+              <FileText className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
 
-          <div className="glass-panel p-6 rounded-3xl relative border border-zinc-800 flex items-center justify-between">
-            <div>
-              <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Average Score</p>
-              <h2 className="text-3xl font-extrabold text-zinc-100 mt-1">{user?.avg_mock_score ? `${user.avg_mock_score}%` : 'N/A'}</h2>
+          <div className="premium-card p-6 flex items-center justify-between">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Mock Interviews</p>
+              <h2 className="text-3xl font-black text-white tracking-tight">{user?.total_mocks || 0}</h2>
             </div>
-            <div className="p-3.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-2xl">
-              <Activity className="w-6 h-6" />
+            <div className="p-3 bg-white/[0.02] border border-white/[0.04] text-zinc-400 rounded-xl">
+              <Award className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
 
-          <div className="glass-panel p-6 rounded-3xl relative border border-zinc-800 flex items-center justify-between">
-            <div>
-              <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Best Score</p>
-              <h2 className="text-3xl font-extrabold text-emerald-400 mt-1">{user?.best_mock_score ? `${user.best_mock_score}%` : 'N/A'}</h2>
+          <div className="premium-card p-6 flex items-center justify-between">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Average Score</p>
+              <h2 className="text-3xl font-black text-white tracking-tight">{user?.avg_mock_score ? `${user.avg_mock_score}%` : 'N/A'}</h2>
             </div>
-            <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl">
-              <Award className="w-6 h-6" />
+            <div className="p-3 bg-white/[0.02] border border-white/[0.04] text-zinc-400 rounded-xl">
+              <Activity className="w-5 h-5" strokeWidth={1.5} />
+            </div>
+          </div>
+
+          <div className="premium-card p-6 flex items-center justify-between">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Best Score</p>
+              <h2 className="text-3xl font-black text-emerald-400 tracking-tight">{user?.best_mock_score ? `${user.best_mock_score}%` : 'N/A'}</h2>
+            </div>
+            <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 rounded-xl">
+              <Award className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
         </section>
 
         {/* Sessions Section Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-zinc-100">Resume Sessions</h2>
-            <p className="text-zinc-400 text-sm mt-1">Review questions generated from your resumes or take a mock interview</p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-4">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-black tracking-tight text-white">Resume Sessions</h2>
+            <p className="text-zinc-500 text-xs font-medium">Review questions generated from your resumes or take a mock interview</p>
           </div>
           <Link
             href="/sessions/new"
-            className="inline-flex items-center gap-1.5 px-5 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl hover:from-indigo-500 hover:to-purple-500 transition-all shadow-md cursor-pointer hover:shadow-indigo-500/10"
+            className="inline-flex items-center gap-1.5 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white bg-violet-600 hover:bg-violet-500 rounded-xl transition-all shadow-md shadow-violet-500/10 cursor-pointer hover:-translate-y-0.5 active:scale-95 animate-fade-in"
           >
-            <Plus className="w-4 h-4" /> New Session
+            <Plus className="w-3.5 h-3.5" strokeWidth={1.5} /> New Session
           </Link>
         </div>
 
@@ -123,26 +123,28 @@ export default function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="glass-panel p-6 rounded-3xl border border-zinc-800 h-56 animate-pulse flex flex-col justify-between">
+              <div key={i} className="premium-card p-6 h-56 animate-pulse flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="h-5 bg-zinc-800 rounded-lg w-2/3" />
-                  <div className="h-4 bg-zinc-800 rounded-lg w-1/3" />
-                  <div className="h-4 bg-zinc-800 rounded-lg w-1/2" />
+                  <div className="h-4 bg-zinc-900 rounded-lg w-2/3" />
+                  <div className="h-3 bg-zinc-900 rounded-lg w-1/3" />
+                  <div className="h-3 bg-zinc-900 rounded-lg w-1/2" />
                 </div>
-                <div className="h-10 bg-zinc-800 rounded-xl w-full" />
+                <div className="h-9 bg-zinc-900 rounded-xl w-full" />
               </div>
             ))}
           </div>
         ) : sessions.length === 0 ? (
-          <div className="glass-panel rounded-3xl p-12 text-center border border-zinc-800">
-            <BookOpen className="w-12 h-12 text-zinc-500 mx-auto mb-4" />
+          <div className="premium-card p-16 text-center max-w-3xl mx-auto flex flex-col items-center justify-center">
+            <div className="p-4 bg-white/[0.01] border border-white/[0.04] rounded-2xl mb-5 text-zinc-500">
+              <BookOpen className="w-8 h-8" strokeWidth={1.5} />
+            </div>
             <h3 className="text-lg font-bold text-zinc-200">No Resume Sessions Yet</h3>
-            <p className="text-zinc-500 text-sm max-w-sm mx-auto mt-2 mb-6">
+            <p className="text-zinc-500 text-xs max-w-sm mt-2 mb-8 leading-relaxed font-medium">
               Upload your PDF resume and select your target role to generate practice questions and simulate interviews.
             </p>
             <Link
               href="/sessions/new"
-              className="inline-flex items-center gap-1.5 px-6 py-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-2xl text-sm font-semibold text-white transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-6 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-white/[0.06] rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer hover:-translate-y-0.5"
             >
               Upload Your First Resume
             </Link>
@@ -152,75 +154,78 @@ export default function DashboardPage() {
             {sessions.map((session) => (
               <div
                 key={session.id}
-                className="glass-panel p-6 rounded-3xl border border-zinc-800 flex flex-col justify-between relative transition-all duration-300 hover:border-zinc-700 hover:shadow-lg"
+                className="premium-card p-6 flex flex-col justify-between relative"
               >
                 <div>
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-bold text-lg text-zinc-100 line-clamp-1">{session.job_role}</h3>
-                      <p className="text-zinc-500 text-xs font-semibold mt-0.5">{session.experience_level}</p>
+                    <div className="space-y-0.5">
+                      <h3 className="font-bold text-base text-zinc-100 line-clamp-1 tracking-tight">{session.job_role}</h3>
+                      <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">{session.experience_level}</p>
                     </div>
 
                     {/* Status Badge */}
                     {session.status === 'ready' && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/5 border border-emerald-500/10 text-emerald-400">
+                        <span className="w-1 h-1 rounded-full bg-emerald-400" />
                         Ready
                       </span>
                     )}
                     {session.status === 'processing' && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/5 border border-violet-500/10 text-violet-400">
+                        <Loader2 className="w-2.5 h-2.5 animate-spin" strokeWidth={1.5} />
                         Analyzing
                       </span>
                     )}
                     {session.status === 'failed' && (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 border border-red-500/20 text-red-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/5 border border-red-500/10 text-red-400">
+                        <span className="w-1 h-1 rounded-full bg-red-400" />
                         Failed
                       </span>
                     )}
                   </div>
 
-                  <p className="text-zinc-400 text-xs mt-3 flex items-center gap-1.5 truncate">
-                    <FileText className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
-                    {session.resume_filename}
+                  <p className="text-zinc-400 text-xs mt-4 flex items-center gap-2 truncate bg-white/[0.01] border border-white/[0.03] p-2 rounded-xl">
+                    <FileText className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" strokeWidth={1.5} />
+                    <span className="truncate font-medium">{session.resume_filename}</span>
                   </p>
 
-                  <div className="grid grid-cols-2 gap-4 mt-6 border-t border-zinc-900 pt-4 text-sm text-zinc-400">
-                    <div>
-                      <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Questions</span>
-                      <p className="font-semibold mt-0.5 text-zinc-200">{session.question_count || 0}</p>
+                  <div className="grid grid-cols-2 gap-4 mt-6 border-t border-white/[0.04] pt-4 text-xs">
+                    <div className="space-y-0.5">
+                      <span className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">Questions</span>
+                      <p className="font-bold text-zinc-200">{session.question_count || 0}</p>
                     </div>
-                    <div>
-                      <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Best Score</span>
-                      <p className="font-semibold mt-0.5 text-emerald-400">
+                    <div className="space-y-0.5">
+                      <span className="text-zinc-500 text-[9px] uppercase font-bold tracking-wider">Best Score</span>
+                      <p className="font-bold text-emerald-400">
                         {session.best_mock_score ? `${session.best_mock_score}%` : 'N/A'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between gap-3 pt-4 border-t border-zinc-900">
+                <div className="mt-6 flex items-center justify-between gap-3 pt-4 border-t border-white/[0.04]">
                   {session.status === 'ready' ? (
                     <>
                       <Link
                         href={`/sessions/${session.id}`}
-                        className="flex-1 inline-flex justify-center items-center py-2 px-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-xl text-xs font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                        className="flex-1 inline-flex justify-center items-center py-2.5 px-3 bg-zinc-900 border border-white/[0.06] hover:bg-zinc-800 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition-colors cursor-pointer"
                       >
                         Practice Bank
                       </Link>
                       <Link
                         href={`/sessions/${session.id}/mock/setup`}
-                        className="flex-1 inline-flex justify-center items-center gap-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-semibold text-white transition-colors cursor-pointer"
+                        className="flex-1 inline-flex justify-center items-center gap-1 py-2.5 px-3 bg-violet-600 hover:bg-violet-500 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-colors cursor-pointer hover:-translate-y-0.5 active:scale-95"
                       >
-                        Start Mock <ArrowRight className="w-3 h-3" />
+                        Start Mock <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
                       </Link>
                     </>
                   ) : session.status === 'processing' ? (
-                    <div className="flex-1 py-2 text-center text-xs text-zinc-500 flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                    <div className="flex-1 py-2 text-center text-xs text-zinc-500 flex items-center justify-center gap-2 font-medium">
+                      <Loader2 className="w-3.5 h-3.5 text-violet-500 animate-spin" strokeWidth={1.5} />
                       Analyzing resume details...
                     </div>
                   ) : (
-                    <div className="flex-1 py-1 bg-red-500/5 border border-red-500/10 text-red-400 rounded-xl p-3 text-xs leading-relaxed max-w-full overflow-hidden text-ellipsis">
+                    <div className="flex-1 py-2 bg-red-500/5 border border-red-500/10 text-red-400 rounded-xl px-3 text-xs leading-relaxed max-w-full overflow-hidden text-ellipsis font-medium">
                       <span className="font-bold block mb-0.5">Error:</span>
                       {session.error_message || "Generation failed."}
                     </div>
@@ -230,9 +235,9 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleDelete(session.id)}
                     disabled={deletingId === session.id}
-                    className="p-2 text-zinc-500 hover:text-red-400 bg-transparent hover:bg-zinc-900 rounded-xl border border-transparent hover:border-zinc-800 transition-colors cursor-pointer flex-shrink-0 disabled:opacity-50"
+                    className="p-2.5 text-zinc-500 hover:text-red-400 bg-transparent hover:bg-white/[0.02] rounded-xl border border-transparent hover:border-white/[0.04] transition-colors cursor-pointer flex-shrink-0 disabled:opacity-50"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>

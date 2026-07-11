@@ -4,8 +4,8 @@ import React, { useEffect, useState, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from 'src/components/Header';
 import { mockApi } from 'src/lib/api';
-import { MockInterview, InterviewQuestion, MockAnswer } from 'src/lib/types';
-import { AlertCircle, Clock, AlertTriangle, ArrowRight, ShieldAlert, Cpu, CheckCircle } from 'lucide-react';
+import { MockInterview, InterviewQuestion } from 'src/lib/types';
+import { AlertCircle, Clock, ArrowRight, ShieldAlert, Cpu, Loader2 } from 'lucide-react';
 
 const EVALUATION_STEPS = [
   "Evaluating your responses...",
@@ -227,7 +227,7 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
     clearAllTimers();
 
     try {
-      const nextMock = await mockApi.complete(mockId);
+      await mockApi.complete(mockId);
       beginReportPolling();
     } catch (err: any) {
       setError("Failed to terminate interview early.");
@@ -307,9 +307,9 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col justify-center items-center bg-zinc-950 px-4">
-        <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4" />
-        <p className="text-zinc-500 text-sm">Entering interview room...</p>
+      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6">
+        <Loader2 className="w-10 h-10 text-violet-500 animate-spin mb-4" strokeWidth={1.5} />
+        <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Entering interview room...</p>
       </div>
     );
   }
@@ -317,23 +317,23 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
   // Report generating loading screen
   if (isFinalizing) {
     return (
-      <div className="flex-1 flex flex-col justify-center items-center bg-zinc-950 px-4">
-        <div className="text-center space-y-6 max-w-md w-full">
-          <div className="pulse-ring inline-flex p-5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-3xl mb-4">
-            <Cpu className="w-8 h-8 animate-spin" />
+      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6">
+        <div className="text-center space-y-6 max-w-md w-full animate-fade-in">
+          <div className="inline-flex p-5 bg-violet-500/5 border border-violet-500/10 text-violet-400 rounded-3xl mb-4 animate-bounce">
+            <Cpu className="w-8 h-8" strokeWidth={1.5} />
           </div>
           
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-100">
+          <h2 className="text-2xl font-black tracking-tight text-white">
             {EVALUATION_STEPS[finalizeStep]}
           </h2>
           
-          <p className="text-zinc-500 text-sm">
+          <p className="text-zinc-500 text-xs leading-relaxed font-medium">
             Please keep this tab open. Our AI coach is processing transcripts, computing category metrics, and assembling your personalized preparation roadmap.
           </p>
 
-          <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-850">
+          <div className="w-full bg-[#0c0c0e] h-1 rounded-full overflow-hidden border border-white/[0.04] mt-6">
             <div 
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500"
+              className="bg-violet-600 h-full rounded-full transition-all duration-500"
               style={{ width: `${((finalizeStep + 1) / EVALUATION_STEPS.length) * 100}%` }}
             />
           </div>
@@ -346,21 +346,21 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
   if (showTransition && mock && questions.length > 0) {
     const activeQuestion = questions[mock.current_question_index] || null;
     return (
-      <div className="flex-1 flex flex-col justify-center items-center bg-zinc-950 px-4">
-        <div className="text-center space-y-6 max-w-lg w-full">
-          <span className="text-xs font-black tracking-widest text-indigo-400 uppercase block">
+      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6">
+        <div className="text-center space-y-6 max-w-lg w-full animate-fade-in">
+          <span className="text-[10px] font-bold tracking-widest text-violet-400 uppercase block">
             Upcoming Question
           </span>
-          <h2 className="text-5xl font-black text-white animate-scale">
+          <h2 className="text-7xl font-black text-white">
             {transitionCountdown}
           </h2>
           {activeQuestion && (
-            <div className="glass-panel p-6 rounded-3xl border border-zinc-800">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 block w-fit mx-auto mb-3">
+            <div className="premium-card p-6">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-violet-400 px-2.5 py-0.5 rounded-full bg-violet-500/5 border border-violet-500/10 block w-fit mx-auto mb-3">
                 {activeQuestion.category}
               </span>
-              <p className="text-zinc-400 text-sm leading-relaxed italic">
-                "Focus and outline your action points clearly. We will start in a moment."
+              <p className="text-zinc-400 text-xs font-medium italic">
+                "Focus and outline your answer clearly. We will start in a moment."
               </p>
             </div>
           )}
@@ -372,15 +372,15 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
   const activeQuestion = mock && questions.length > 0 ? questions[mock.current_question_index] : null;
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-zinc-950">
+    <div className="flex-1 flex flex-col min-h-screen bg-[var(--background)]">
       <Header />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col justify-between">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-10 sm:px-8 flex flex-col justify-between animate-fade-in">
         
         {/* Error notification */}
         {error && (
-          <div className="flex items-center gap-3 p-4 mb-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs font-medium">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
             <span>{error}</span>
           </div>
         )}
@@ -389,42 +389,44 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
           <div className="space-y-6 flex-1 flex flex-col justify-between">
             {/* Top progress row */}
             <div className="flex items-center justify-between gap-4">
-              <div className="text-xs text-zinc-500 font-semibold uppercase tracking-wider">
-                Question <span className="text-zinc-200 font-black">{mock.current_question_index + 1}</span> of <span className="text-zinc-200 font-black">{mock.question_count}</span>
+              <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                Question <span className="text-white font-black">{mock.current_question_index + 1}</span> of <span className="text-white font-black">{mock.question_count}</span>
               </div>
               
               {/* Timer badge */}
-              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
                 mock.time_limit_per_question
                   ? secondsRemaining < 15
-                    ? 'bg-red-500/10 border-red-500/20 text-red-400 animate-pulse'
-                    : 'bg-zinc-900 border-zinc-800 text-zinc-300'
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-300'
+                    ? 'bg-red-500/5 border-red-500/20 text-red-400 animate-pulse'
+                    : 'bg-zinc-950/40 border-white/[0.04] text-zinc-300'
+                  : 'bg-zinc-950/40 border-white/[0.04] text-zinc-300'
               }`}>
-                <Clock className="w-3.5 h-3.5" />
-                {mock.time_limit_per_question ? formatTime(secondsRemaining) : formatTime(elapsedSeconds)}
+                <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span className="font-bold tabular-nums">
+                  {mock.time_limit_per_question ? formatTime(secondsRemaining) : formatTime(elapsedSeconds)}
+                </span>
               </div>
             </div>
 
             {/* Overall progress indicator bar */}
-            <div className="w-full bg-zinc-900 h-1 rounded-full overflow-hidden border border-zinc-900">
+            <div className="w-full bg-[#0c0c0e] h-1 rounded-full overflow-hidden border border-white/[0.04]">
               <div 
-                className="bg-indigo-500 h-full rounded-full transition-all duration-300"
+                className="bg-violet-600 h-full rounded-full transition-all duration-300"
                 style={{ width: `${(mock.current_question_index / mock.question_count) * 100}%` }}
               />
             </div>
 
             {/* Question description card */}
-            <section className="glass-panel p-6 sm:p-8 rounded-3xl border border-zinc-800 space-y-4 my-6">
+            <section className="premium-card p-6 sm:p-8 space-y-4 my-6">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-violet-400 px-2 py-0.5 rounded-full bg-violet-500/5 border border-violet-500/10">
                   {activeQuestion.category}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">
                   Hiring Focus
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 leading-snug">
+              <h1 className="text-xl sm:text-2xl font-black text-white leading-snug tracking-tight">
                 {activeQuestion.question_text}
               </h1>
             </section>
@@ -439,17 +441,17 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
                     onChange={(e) => setUserAnswer(e.target.value)}
                     required
                     placeholder="Type your response here..."
-                    className="block w-full p-4 h-full min-h-[180px] bg-zinc-900/40 border border-zinc-850 rounded-2xl text-zinc-200 placeholder-zinc-650 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-sm leading-relaxed"
+                    className="focus-ring-premium block w-full p-4 h-full min-h-[220px] bg-[#0c0c0e] border border-white/[0.06] rounded-2xl text-zinc-200 placeholder-zinc-700 text-xs sm:text-sm leading-relaxed font-medium"
                   />
                 </div>
 
                 {/* Submits and controls */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     type="button"
                     onClick={handleSkipQuestion}
                     disabled={submitting}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs font-bold rounded-2xl transition-colors cursor-pointer disabled:opacity-50"
+                    className="w-full sm:w-auto px-6 py-3.5 bg-zinc-950/40 hover:bg-zinc-900 border border-white/[0.04] text-zinc-400 hover:text-zinc-200 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                   >
                     Skip Question
                   </button>
@@ -457,13 +459,13 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-2xl transition-all shadow-md hover:shadow-indigo-500/10 cursor-pointer flex justify-center items-center gap-1 disabled:opacity-50"
+                    className="flex-1 px-6 py-3.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md shadow-violet-500/10 cursor-pointer flex justify-center items-center gap-1.5 disabled:opacity-50 hover:-translate-y-0.5 active:scale-95"
                   >
                     {submitting ? (
-                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      <Loader2 className="w-4 h-4 text-white animate-spin" strokeWidth={1.5} />
                     ) : (
                       <>
-                        Submit Response <ArrowRight className="w-4 h-4" />
+                        Submit Response <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
                       </>
                     )}
                   </button>
@@ -472,13 +474,13 @@ export default function LiveMockPage({ params }: { params: Promise<{ id: string;
             </section>
 
             {/* Quick stats footer row with complete early trigger */}
-            <div className="flex items-center justify-between border-t border-zinc-900 pt-6 mt-6">
-              <span className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1">
-                <ShieldAlert className="w-3.5 h-3.5 text-zinc-600" /> Responses are graded by PrepIQ AI Coach
+            <div className="flex items-center justify-between border-t border-white/[0.04] pt-6 mt-6">
+              <span className="text-zinc-600 text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-zinc-650" strokeWidth={1.5} /> Responses are graded by PrepIQ AI Coach
               </span>
               <button
                 onClick={handleCompleteEarly}
-                className="text-xs font-bold text-red-500 hover:text-red-400 bg-transparent hover:bg-red-500/5 px-3 py-1.5 rounded-lg border border-transparent hover:border-red-500/10 transition-colors cursor-pointer"
+                className="text-xs font-bold text-red-500/70 hover:text-red-400 bg-transparent hover:bg-red-500/5 px-3 py-1.5 rounded-lg border border-transparent hover:border-red-500/10 transition-colors cursor-pointer"
               >
                 Complete Interview Early
               </button>

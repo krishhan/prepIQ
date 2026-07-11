@@ -98,11 +98,11 @@ def query_openrouter(messages, use_fallback=False, enforce_json=False):
     try:
         response = call_with_absolute_timeout(
             requests.post,
-            35,  # absolute timeout
+            100,  # absolute timeout
             url,
             headers=headers,
             json=payload,
-            timeout=30  # read timeout
+            timeout=90  # read timeout
         )
     except (requests.exceptions.RequestException, TimeoutError) as e:
         logger.error(f"OpenRouter request failed: {str(e)}")
@@ -161,8 +161,8 @@ organized into these 4 categories:
 
 For each question provide:
 - difficulty: "Easy" | "Medium" | "Hard"
-- why_asked: one sentence explaining why an interviewer would ask this
-- ideal_answer_outline: 3 bullet points outlining what a strong answer should cover
+- why_asked: STRICTLY one short sentence (max 15 words) explaining why an interviewer would ask this
+- ideal_answer_outline: STRICTLY 3 short bullet points (max 10 words each) outlining what a strong answer should cover
 
 Return ONLY valid JSON. No markdown. No explanation. No text outside the JSON.
 
@@ -225,16 +225,22 @@ JSON Schema:
     try:
         response_text = query_openrouter(messages, use_fallback=False, enforce_json=False)
         return clean_and_parse_json(response_text)
+    except LLMRateLimitError:
+        raise
     except (json.JSONDecodeError, LLMError) as e:
         logger.warning(f"Primary model generation or JSON parse failed: {str(e)}. Retrying with stricter constraints...")
         try:
             response_text = query_openrouter(messages, use_fallback=False, enforce_json=True)
             return clean_and_parse_json(response_text)
+        except LLMRateLimitError:
+            raise
         except (json.JSONDecodeError, LLMError) as e2:
             logger.warning(f"Primary model retry failed: {str(e2)}. Falling back to fallback model...")
             try:
                 response_text = query_openrouter(messages, use_fallback=True, enforce_json=True)
                 return clean_and_parse_json(response_text)
+            except LLMRateLimitError:
+                raise
             except Exception as e3:
                 logger.error(f"All LLM generation paths failed. Error: {str(e3)}")
                 raise LLMError(f"Failed to generate structured interview questions: {str(e3)}")
@@ -269,11 +275,15 @@ Return ONLY valid JSON:
     try:
         response_text = query_openrouter(messages, use_fallback=False, enforce_json=True)
         return clean_and_parse_json(response_text)
+    except LLMRateLimitError:
+        raise
     except (json.JSONDecodeError, LLMError) as e:
         logger.warning(f"Primary model evaluation or JSON parse failed: {str(e)}. Retrying with fallback...")
         try:
             response_text = query_openrouter(messages, use_fallback=True, enforce_json=True)
             return clean_and_parse_json(response_text)
+        except LLMRateLimitError:
+            raise
         except Exception as e2:
             logger.error(f"Fallback model evaluation failed: {str(e2)}")
             # Default fallback JSON feedback
@@ -339,11 +349,15 @@ Return ONLY valid JSON:
     try:
         response_text = query_openrouter(messages, use_fallback=False, enforce_json=True)
         return clean_and_parse_json(response_text)
+    except LLMRateLimitError:
+        raise
     except (json.JSONDecodeError, LLMError) as e:
         logger.warning(f"Primary model report generation or JSON parse failed: {str(e)}. Retrying with fallback...")
         try:
             response_text = query_openrouter(messages, use_fallback=True, enforce_json=True)
             return clean_and_parse_json(response_text)
+        except LLMRateLimitError:
+            raise
         except Exception as e2:
             logger.error(f"Fallback model report generation failed: {str(e2)}")
             # Default fallback JSON report structure

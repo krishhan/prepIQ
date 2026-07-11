@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from 'src/components/Header';
 import { sessionsApi } from 'src/lib/api';
-import { Terminal, Upload, AlertCircle, FileText, Cpu } from 'lucide-react';
+import { Upload, AlertCircle, FileText, Cpu, Loader2 } from 'lucide-react';
 
 const ROLES = [
   "Frontend Developer", "Backend Developer", "Full Stack Developer",
@@ -123,23 +123,23 @@ export default function NewSessionPage() {
 
   if (isSubmitting) {
     return (
-      <div className="flex-1 flex flex-col justify-center items-center bg-zinc-950 px-4">
-        <div className="text-center space-y-6 max-w-md w-full">
-          <div className="pulse-ring inline-flex p-5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-3xl mb-4">
-            <Cpu className="w-8 h-8 animate-spin" />
+      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6">
+        <div className="text-center space-y-6 max-w-md w-full animate-fade-in">
+          <div className="inline-flex p-5 bg-violet-500/5 border border-violet-500/10 text-violet-400 rounded-3xl mb-4 animate-bounce">
+            <Cpu className="w-8 h-8" strokeWidth={1.5} />
           </div>
           
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-100 transition-all duration-300">
+          <h2 className="text-2xl font-black tracking-tight text-white transition-all duration-300">
             {LOADING_STEPS[currentStepIndex]}
           </h2>
           
-          <p className="text-zinc-500 text-sm">
+          <p className="text-zinc-500 text-xs leading-relaxed font-medium">
             Please keep this page open. We are analyzing key skills from your resume using OpenRouter Llama-3.1 to generate highly relevant interview questions.
           </p>
 
-          <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-zinc-800">
+          <div className="w-full bg-[#0c0c0e] h-1 rounded-full overflow-hidden border border-white/[0.04] mt-6">
             <div 
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500"
+              className="bg-violet-600 h-full rounded-full transition-all duration-500"
               style={{ width: `${((currentStepIndex + 1) / LOADING_STEPS.length) * 100}%` }}
             />
           </div>
@@ -149,23 +149,23 @@ export default function NewSessionPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-zinc-950">
+    <div className="flex-1 flex flex-col min-h-screen bg-[var(--background)]">
       <Header />
 
-      <main className="flex-1 flex flex-col justify-center items-center px-4 py-12 max-w-2xl w-full mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-100">
-            Configure Your Prep Session
+      <main className="flex-1 flex flex-col justify-center items-center px-6 py-12 max-w-2xl w-full mx-auto animate-fade-in">
+        <div className="text-center mb-8 space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Configure Prep Session
           </h1>
-          <p className="text-zinc-400 text-sm mt-2">
+          <p className="text-zinc-500 text-xs font-medium">
             Upload your text-based PDF resume, specify your target job role and experience level.
           </p>
         </div>
 
-        <div className="glass-panel p-8 rounded-3xl w-full border border-zinc-800">
+        <div className="premium-card p-8 w-full">
           {(validationError || errorMessage) && (
-            <div className="flex items-center gap-3 p-4 mb-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400 text-xs font-medium">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
               <span>{validationError || errorMessage}</span>
             </div>
           )}
@@ -174,11 +174,11 @@ export default function NewSessionPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Job Role Selection */}
               <div>
-                <label className="block text-sm font-semibold text-zinc-300 mb-2">Target Job Role</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Target Job Role</label>
                 <select
                   value={jobRole}
                   onChange={(e) => setJobRole(e.target.value)}
-                  className="block w-full py-3 px-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors text-sm cursor-pointer"
+                  className="focus-ring-premium block w-full py-3 px-4 bg-[#0c0c0e] border border-white/[0.06] rounded-xl text-zinc-300 text-xs font-semibold cursor-pointer"
                 >
                   {ROLES.map(role => (
                     <option key={role} value={role}>{role}</option>
@@ -188,11 +188,11 @@ export default function NewSessionPage() {
 
               {/* Experience Level Selection */}
               <div>
-                <label className="block text-sm font-semibold text-zinc-300 mb-2">Experience Level</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Experience Level</label>
                 <select
                   value={experienceLevel}
                   onChange={(e) => setExperienceLevel(e.target.value)}
-                  className="block w-full py-3 px-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors text-sm cursor-pointer"
+                  className="focus-ring-premium block w-full py-3 px-4 bg-[#0c0c0e] border border-white/[0.06] rounded-xl text-zinc-300 text-xs font-semibold cursor-pointer"
                 >
                   {EXPERIENCE_LEVELS.map(level => (
                     <option key={level} value={level}>{level}</option>
@@ -203,8 +203,8 @@ export default function NewSessionPage() {
 
             {/* Drag & Drop PDF upload area */}
             <div>
-              <label className="block text-sm font-semibold text-zinc-300 mb-2">Upload Resume (PDF only, max 5MB)</label>
-              <div className="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-zinc-800 border-dashed rounded-3xl hover:border-zinc-700 transition-colors relative bg-zinc-900/30">
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Upload Resume (PDF only, max 5MB)</label>
+              <div className="mt-1 flex justify-center px-6 pt-8 pb-8 border border-dashed border-white/[0.08] rounded-2xl hover:border-white/20 transition-colors relative bg-[#0c0c0e]/30">
                 <input
                   type="file"
                   id="resume"
@@ -212,25 +212,25 @@ export default function NewSessionPage() {
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <div className="space-y-2 text-center pointer-events-none">
-                  <div className="inline-flex p-3 bg-zinc-800 rounded-2xl text-zinc-400 mb-2">
-                    <Upload className="w-6 h-6" />
+                <div className="space-y-3 text-center pointer-events-none">
+                  <div className="inline-flex p-3 bg-zinc-900 border border-white/[0.04] rounded-xl text-zinc-400 mb-1">
+                    <Upload className="w-5 h-5" strokeWidth={1.5} />
                   </div>
                   
                   {file ? (
-                    <div className="flex flex-col items-center">
-                      <p className="text-zinc-200 text-sm font-semibold flex items-center gap-1.5">
-                        <FileText className="w-4 h-4 text-indigo-400" />
+                    <div className="space-y-1">
+                      <p className="text-zinc-200 text-xs font-semibold flex items-center justify-center gap-1.5">
+                        <FileText className="w-4 h-4 text-violet-400" strokeWidth={1.5} />
                         {file.name}
                       </p>
-                      <p className="text-zinc-500 text-xs mt-1">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                      <p className="text-zinc-500 text-[10px] font-bold">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                     </div>
                   ) : (
                     <>
-                      <p className="text-zinc-300 text-sm font-medium">
+                      <p className="text-zinc-300 text-xs font-bold uppercase tracking-wider">
                         Click to upload or drag and drop
                       </p>
-                      <p className="text-zinc-500 text-xs">PDF formats only, text-based</p>
+                      <p className="text-zinc-500 text-[10px] font-medium">PDF formats only, text-based</p>
                     </>
                   )}
                 </div>
@@ -239,7 +239,7 @@ export default function NewSessionPage() {
 
             <button
               type="submit"
-              className="w-full py-4 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl text-sm font-bold text-white hover:from-indigo-500 hover:to-purple-500 transition-all shadow-md hover:shadow-indigo-500/10 cursor-pointer"
+              className="w-full py-4 px-4 bg-violet-600 hover:bg-violet-500 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all shadow-md shadow-violet-500/10 cursor-pointer hover:-translate-y-0.5 active:scale-95"
             >
               Analyze Resume & Generate Practice Bank
             </button>
