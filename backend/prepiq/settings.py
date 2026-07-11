@@ -195,7 +195,7 @@ JWT_COOKIE_ACCESS_NAME = 'access_token'
 JWT_COOKIE_REFRESH_NAME = 'refresh_token'
 JWT_COOKIE_SECURE = not DEBUG  # True in production (HTTPS required)
 JWT_COOKIE_HTTPONLY = True     # Prevent JS access
-JWT_COOKIE_SAMESITE = 'Lax'    # Lax protection
+JWT_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
 
 # CORS Configuration
 CORS_ALLOW_CREDENTIALS = True
@@ -205,7 +205,7 @@ CORS_ALLOWED_ORIGINS = [
 
 # CSRF Cookie Settings (exposed to frontend to read and send as X-CSRFToken)
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',') if origin.strip()
