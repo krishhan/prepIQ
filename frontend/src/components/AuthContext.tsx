@@ -62,10 +62,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const u = await authApi.me();
         setUser(u);
         setCachedUser(u);
-      } catch (error) {
-        // me() failed — clear cached user so we don't keep stale state
-        setUser(null);
-        setCachedUser(null);
+      } catch (error: any) {
+        // Only log out the user if the backend explicitly returns 401 (session invalid).
+        // Network errors, CORS failures, or timeouts should NOT log out a cached user.
+        const status = error?.response?.status;
+        if (status === 401 || status === 403) {
+          setUser(null);
+          setCachedUser(null);
+        }
+        // Otherwise, keep the cached user state — let them stay logged in
       } finally {
         setLoading(false);
       }

@@ -29,8 +29,10 @@ class JWTCookieAuthentication(JWTAuthentication):
         if raw_token is None:
             return None
 
-        # Enforce CSRF check if the token is fetched from a cookie
-        if from_cookie:
+        # Only enforce CSRF for state-mutating methods (POST/PUT/PATCH/DELETE).
+        # GET/HEAD/OPTIONS are safe and Django's own CSRF middleware already exempts them.
+        SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS', 'TRACE')
+        if from_cookie and request.method not in SAFE_METHODS:
             self.enforce_csrf(request)
 
         try:
