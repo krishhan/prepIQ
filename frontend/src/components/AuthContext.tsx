@@ -17,9 +17,29 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/'];
+const USER_CACHE_KEY = 'prepiq_user';
+
+function getCachedUser(): User | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedUser(user: User | null) {
+  if (typeof window === 'undefined') return;
+  if (user) {
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(USER_CACHE_KEY);
+  }
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(getCachedUser);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -28,8 +48,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authApi.me();
       setUser(u);
+      setCachedUser(u);
     } catch (error) {
-      setUser(null);
+      // Don't clear user on a failed refresh — keep existing state
     }
   };
 
@@ -40,8 +61,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await authApi.getCsrf(); // Ensure CSRF cookie is set
         const u = await authApi.me();
         setUser(u);
+        setCachedUser(u);
       } catch (error) {
+        // me() failed — clear cached user so we don't keep stale state
         setUser(null);
+        setCachedUser(null);
       } finally {
         setLoading(false);
       }
@@ -68,9 +92,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authApi.login({ email, password });
       setUser(u);
+      setCachedUser(u);
       router.push('/dashboard');
     } catch (error) {
       setUser(null);
+      setCachedUser(null);
       throw error;
     } finally {
       setLoading(false);
@@ -82,9 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authApi.signup({ email, name, password });
       setUser(u);
+      setCachedUser(u);
       router.push('/dashboard');
     } catch (error) {
       setUser(null);
+      setCachedUser(null);
       throw error;
     } finally {
       setLoading(false);
@@ -96,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authApi.logout();
       setUser(null);
+      setCachedUser(null);
       router.push('/login');
     } catch (error) {
       console.error("Logout failed", error);
