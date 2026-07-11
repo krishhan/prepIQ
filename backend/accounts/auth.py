@@ -16,21 +16,23 @@ class JWTCookieAuthentication(JWTAuthentication):
         raw_token = None
         from_cookie = False
 
-        # Try to get the access token from cookies first
-        access_cookie_name = getattr(settings, 'JWT_COOKIE_ACCESS_NAME', 'access_token')
-        if access_cookie_name in request.COOKIES:
-            raw_token = request.COOKIES[access_cookie_name]
-            from_cookie = True
-        
-        # Fallback to authorization header if cookie is missing
-        elif header is not None:
+        # Prefer Authorization header (Bearer token) over cookies.
+        # If a Bearer token is present, use it directly — no CSRF needed.
+        if header is not None:
             raw_token = self.get_raw_token(header)
+
+        # Fall back to cookie only if no Authorization header was provided
+        if raw_token is None:
+            access_cookie_name = getattr(settings, 'JWT_COOKIE_ACCESS_NAME', 'access_token')
+            if access_cookie_name in request.COOKIES:
+                raw_token = request.COOKIES[access_cookie_name]
+                from_cookie = True
 
         if raw_token is None:
             return None
 
-        # Only enforce CSRF for state-mutating methods (POST/PUT/PATCH/DELETE).
-        # GET/HEAD/OPTIONS are safe and Django's own CSRF middleware already exempts them.
+        # Only enforce CSRF for state-mutating methods when auth came from cookie.
+        # Bearer token requests never need CSRF (CSRF is a cookie-stealing attack).
         SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS', 'TRACE')
         if from_cookie and request.method not in SAFE_METHODS:
             self.enforce_csrf(request)
