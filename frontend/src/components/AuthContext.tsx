@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'src/lib/types';
-import { authApi } from 'src/lib/api';
+import { authApi, getAccessToken, clearTokens } from 'src/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -17,29 +17,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/'];
-const USER_CACHE_KEY = 'prepiq_user';
-
-function getCachedUser(): User | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(USER_CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function setCachedUser(user: User | null) {
-  if (typeof window === 'undefined') return;
-  if (user) {
-    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
-  } else {
-    localStorage.removeItem(USER_CACHE_KEY);
-  }
-}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(getCachedUser);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -48,35 +28,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authApi.me();
       setUser(u);
-      setCachedUser(u);
     } catch (error) {
       // Don't clear user on a failed refresh — keep existing state
     }
   };
 
-  // Initial user fetch on boot
+  // Initial user fetch on boot — only if we have a stored token
   useEffect(() => {
     const initializeAuth = async () => {
+      const token = getAccessToken();
+      if (!token) {
+        // No token = definitely not logged in, skip the me() call entirely
+        setLoading(false);
+        return;
+      }
       try {
-        await authApi.getCsrf(); // Ensure CSRF cookie is set
         const u = await authApi.me();
         setUser(u);
-        setCachedUser(u);
       } catch (error: any) {
-        // Only log out the user if the backend explicitly returns 401 (session invalid).
-        // Network errors, CORS failures, or timeouts should NOT log out a cached user.
+        // Only clear token on explicit 401/403 (session truly invalid)
         const status = error?.response?.status;
         if (status === 401 || status === 403) {
+          clearTokens();
           setUser(null);
-          setCachedUser(null);
         }
-        // Otherwise, keep the cached user state — let them stay logged in
+        // Network/CORS errors: keep the user null but don't clear the token
       } finally {
         setLoading(false);
       }
     };
     initializeAuth();
   }, []);
+
 
   // Route protection rules
   useEffect(() => {
@@ -97,11 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authApi.login({ email, password });
       setUser(u);
-      setCachedUser(u);
       router.push('/dashboard');
     } catch (error) {
       setUser(null);
-      setCachedUser(null);
       throw error;
     } finally {
       setLoading(false);
@@ -113,11 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const u = await authApi.signup({ email, name, password });
       setUser(u);
-      setCachedUser(u);
       router.push('/dashboard');
     } catch (error) {
       setUser(null);
-      setCachedUser(null);
       throw error;
     } finally {
       setLoading(false);
@@ -129,7 +108,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authApi.logout();
       setUser(null);
-      setCachedUser(null);
       router.push('/login');
     } catch (error) {
       console.error("Logout failed", error);
