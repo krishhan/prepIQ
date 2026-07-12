@@ -243,22 +243,23 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_EAGER_PROPAGATES = False
 
-if DEBUG:
-    import urllib.parse as urlparse
-    parsed_broker = urlparse.urlparse(CELERY_BROKER_URL)
-    if parsed_broker.scheme in ('redis', 'rediss'):
-        broker_host = parsed_broker.hostname or 'localhost'
-        broker_port = parsed_broker.port or 6379
-        
-        import socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.5)
-        try:
-            s.connect((broker_host, broker_port))
-            s.close()
-        except (socket.error, ConnectionRefusedError):
-            CELERY_TASK_ALWAYS_EAGER = True
-            CELERY_TASK_EAGER_PROPAGATES = True
+# Always test Redis broker availability at startup to fallback to background threads if Redis is missing/unreachable
+import urllib.parse as urlparse
+parsed_broker = urlparse.urlparse(CELERY_BROKER_URL)
+if parsed_broker.scheme in ('redis', 'rediss'):
+    broker_host = parsed_broker.hostname or 'localhost'
+    broker_port = parsed_broker.port or 6379
+    
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.5)
+    try:
+        s.connect((broker_host, broker_port))
+        s.close()
+    except (socket.error, ConnectionRefusedError):
+        CELERY_TASK_ALWAYS_EAGER = True
+        CELERY_TASK_EAGER_PROPAGATES = True
+
 
 # Conditional Celery Beat Schedules
 CELERY_BEAT_ENABLED = os.environ.get('CELERY_BEAT_ENABLED', 'False').lower() == 'true'
