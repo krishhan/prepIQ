@@ -146,20 +146,19 @@ export default function SessionDetailsPage({ params }: { params: Promise<{ id: s
                     />
                   </div>
                 </div>
-                
-                {/* Confidence values */}
-                <div className="md:col-span-5 flex items-center justify-around gap-4 text-center">
-                  <div className="p-3 bg-[#0c0c0e]/40 rounded-xl border border-white/[0.03] flex-1">
-                    <span className="text-emerald-400 text-lg font-black block leading-none">{confidentCount}</span>
-                    <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider block mt-1">Confident</span>
+                                {/* Confidence values */}
+                <div className="md:col-span-5 flex items-center justify-around gap-2.5 sm:gap-4 text-center">
+                  <div className="p-2 sm:p-3 bg-[#0c0c0e]/40 rounded-xl border border-white/[0.03] flex-1">
+                    <span className="text-emerald-400 text-base sm:text-lg font-black block leading-none">{confidentCount}</span>
+                    <span className="text-[8px] sm:text-[9px] uppercase font-bold text-zinc-500 tracking-wider block mt-1">Confident</span>
                   </div>
-                  <div className="p-3 bg-[#0c0c0e]/40 rounded-xl border border-white/[0.03] flex-1">
-                    <span className="text-amber-400 text-lg font-black block leading-none">{needsWorkCount}</span>
-                    <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider block mt-1">Needs Work</span>
+                  <div className="p-2 sm:p-3 bg-[#0c0c0e]/40 rounded-xl border border-white/[0.03] flex-1">
+                    <span className="text-amber-400 text-base sm:text-lg font-black block leading-none">{needsWorkCount}</span>
+                    <span className="text-[8px] sm:text-[9px] uppercase font-bold text-zinc-500 tracking-wider block mt-1">Needs Work</span>
                   </div>
-                  <div className="p-3 bg-[#0c0c0e]/40 rounded-xl border border-white/[0.03] flex-1">
-                    <span className="text-zinc-400 text-lg font-black block leading-none">{notPracticedCount}</span>
-                    <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider block mt-1">Unpracticed</span>
+                  <div className="p-2 sm:p-3 bg-[#0c0c0e]/40 rounded-xl border border-white/[0.03] flex-1">
+                    <span className="text-zinc-400 text-base sm:text-lg font-black block leading-none">{notPracticedCount}</span>
+                    <span className="text-[8px] sm:text-[9px] uppercase font-bold text-zinc-500 tracking-wider block mt-1">Unpracticed</span>
                   </div>
                 </div>
               </div>
@@ -168,12 +167,12 @@ export default function SessionDetailsPage({ params }: { params: Promise<{ id: s
             {/* Tabs and Difficulty filters */}
             <section className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between pt-2">
               {/* Category tabs */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {CATEGORIES.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-3.5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                       activeCategory === cat
                         ? 'bg-violet-600 text-white shadow-md shadow-violet-500/10'
                         : 'bg-zinc-950/40 border border-white/[0.04] text-zinc-400 hover:text-zinc-200 hover:border-white/[0.08]'

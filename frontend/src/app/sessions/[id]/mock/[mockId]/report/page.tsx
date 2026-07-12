@@ -182,9 +182,15 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block mb-6 text-center">Category Scorecard</span>
             <div className="w-full h-60">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
+                <RadarChart 
+                  cx="50%" 
+                  cy="50%" 
+                  outerRadius="65%" 
+                  data={chartData}
+                  margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                >
                   <PolarGrid stroke="rgba(255,255,255,0.03)" />
-                  <PolarAngleAxis dataKey="subject" stroke="#a1a1aa" fontSize={10} fontWeight={700} />
+                  <PolarAngleAxis dataKey="subject" stroke="#a1a1aa" fontSize={9} fontWeight={700} />
                   <PolarRadiusAxis angle={30} domain={[0, 10]} stroke="rgba(255,255,255,0.05)" tickCount={6} />
                   <Radar name="Candidate" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.15} />
                   <Tooltip 
@@ -264,7 +270,34 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
           <h3 className="text-[10px] font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4" strokeWidth={1.5} /> Improvement Roadmap Suggestions
           </h3>
-          <div className="overflow-x-auto w-full">
+
+          {/* Mobile view: Stacked Cards */}
+          <div className="sm:hidden space-y-4">
+            {report.improvement_roadmap.map((item, idx) => {
+              const isHigh = item.priority === 'High';
+              const isLow = item.priority === 'Low';
+              return (
+                <div key={idx} className="p-4 bg-[#0c0c0e]/30 border border-white/[0.03] rounded-2xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-zinc-200 capitalize text-xs">{item.area}</span>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider border ${
+                      isHigh
+                        ? 'bg-red-500/5 border-red-500/20 text-red-400'
+                        : isLow
+                          ? 'bg-blue-500/5 border-blue-500/20 text-blue-400'
+                          : 'bg-amber-500/5 border-amber-500/20 text-amber-400'
+                    }`}>
+                      {item.priority}
+                    </span>
+                  </div>
+                  <p className="text-zinc-400 text-xs leading-relaxed font-medium">{item.suggestion}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop view: Table */}
+          <div className="hidden sm:block overflow-x-auto w-full">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-white/[0.04] text-zinc-500 font-bold uppercase tracking-wider text-[10px]">

@@ -19,13 +19,14 @@ export default function Header() {
             PrepIQ
           </span>
         </Link>
-        <nav className="hidden sm:flex items-center gap-4">
+        <nav className="flex items-center gap-4">
           <Link
             href="/dashboard"
             className="text-xs uppercase font-bold tracking-wider text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1.5"
+            title="Dashboard"
           >
-            <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} />
-            Dashboard
+            <LayoutDashboard className="w-4 h-4 sm:w-3.5 sm:h-3.5" strokeWidth={1.5} />
+            <span className="hidden sm:inline">Dashboard</span>
           </Link>
         </nav>
       </div>

@@ -203,9 +203,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between gap-3 pt-4 border-t border-white/[0.04]">
+                <div className="mt-6 flex flex-col min-[380px]:flex-row items-stretch min-[380px]:items-center justify-between gap-3 pt-4 border-t border-white/[0.04]">
                   {session.status === 'ready' ? (
-                    <>
+                    <div className="flex-1 flex flex-col min-[380px]:flex-row gap-3">
                       <Link
                         href={`/sessions/${session.id}`}
                         className="flex-1 inline-flex justify-center items-center py-2.5 px-3 bg-zinc-900 border border-white/[0.06] hover:bg-zinc-800 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition-colors cursor-pointer"
@@ -214,11 +214,11 @@ export default function DashboardPage() {
                       </Link>
                       <Link
                         href={`/sessions/${session.id}/mock/setup`}
-                        className="flex-1 inline-flex justify-center items-center gap-1 py-2.5 px-3 bg-violet-600 hover:bg-violet-500 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-colors cursor-pointer hover:-translate-y-0.5 active:scale-95"
+                        className="flex-1 inline-flex justify-center items-center gap-1.5 py-2.5 px-3 bg-violet-600 hover:bg-violet-500 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-colors cursor-pointer hover:-translate-y-0.5 active:scale-95"
                       >
                         Start Mock <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
                       </Link>
-                    </>
+                    </div>
                   ) : session.status === 'processing' ? (
                     <div className="flex-1 py-2 text-center text-xs text-zinc-500 flex items-center justify-center gap-2 font-medium">
                       <Loader2 className="w-3.5 h-3.5 text-violet-500 animate-spin" strokeWidth={1.5} />
@@ -235,7 +235,7 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleDelete(session.id)}
                     disabled={deletingId === session.id}
-                    className="p-2.5 text-zinc-500 hover:text-red-400 bg-transparent hover:bg-white/[0.02] rounded-xl border border-transparent hover:border-white/[0.04] transition-colors cursor-pointer flex-shrink-0 disabled:opacity-50"
+                    className="p-2.5 text-zinc-500 hover:text-red-400 bg-transparent hover:bg-white/[0.02] rounded-xl border border-transparent hover:border-white/[0.04] transition-colors cursor-pointer flex-shrink-0 disabled:opacity-50 self-end min-[380px]:self-auto"
                   >
                     <Trash2 className="w-4 h-4" strokeWidth={1.5} />
                   </button>
