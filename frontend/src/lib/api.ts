@@ -37,12 +37,17 @@ export const api = axios.create({
   withCredentials: true, // Still send cookies for backwards compat
 });
 
-// Request Interceptor: Attach Bearer token if available
+// Request Interceptor: Attach Bearer token if available (skip for auth endpoints)
+const AUTH_ENDPOINTS = ['/api/auth/login/', '/api/auth/signup/', '/api/auth/csrf/', '/api/auth/refresh/'];
+
 api.interceptors.request.use(
   (config) => {
-    const token = getAccessToken();
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    const isAuthEndpoint = AUTH_ENDPOINTS.some(ep => config.url?.includes(ep));
+    if (!isAuthEndpoint) {
+      const token = getAccessToken();
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
     return config;
   },
