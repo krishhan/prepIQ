@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import Header from 'src/components/Header';
 import { mockApi } from 'src/lib/api';
 import { MockInterview, InterviewQuestion, MockAnswer, MockReport } from 'src/lib/types';
@@ -11,8 +12,9 @@ import {
 } from 'recharts';
 import {
   ArrowLeft, AlertCircle, Award, CheckCircle, HelpCircle,
-  TrendingUp, Star, AlertTriangle, LayoutDashboard, ChevronDown, ListFilter, CheckCircle2, Loader2
+  TrendingUp, Star, AlertTriangle, LayoutDashboard, ChevronDown, ListFilter, Loader2
 } from 'lucide-react';
+import { GlowButton, MotionContainer, MotionItem, AnimatedCard } from 'src/components/MotionComponents';
 
 export default function MockReportPage({ params }: { params: Promise<{ id: string; mockId: string }> }) {
   const resolvedParams = use(params);
@@ -51,27 +53,26 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6">
+      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6 min-h-screen relative overflow-hidden">
         <Loader2 className="w-10 h-10 text-violet-500 animate-spin mb-4" strokeWidth={1.5} />
-        <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider">Generating report cards...</p>
+        <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Generating report cards...</p>
       </div>
     );
   }
 
   if (error || !mock || !mock.full_report) {
     return (
-      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6">
+      <div className="flex-1 flex flex-col justify-center items-center bg-[var(--background)] px-6 min-h-screen relative overflow-hidden">
         <div className="premium-card p-12 text-center max-w-md w-full flex flex-col items-center">
           <AlertCircle className="w-10 h-10 text-zinc-500 mb-4" strokeWidth={1.5} />
           <h3 className="text-base font-bold text-zinc-200">Report Not Found</h3>
           <p className="text-zinc-500 text-xs mt-2 mb-6 font-medium">
             {error || "This interview has not generated its report cards yet. Wait for evaluations to complete."}
           </p>
-          <Link
-            href={`/sessions/${sessionId}`}
-            className="px-5 py-3 bg-zinc-900 hover:bg-zinc-800 rounded-xl text-xs font-bold uppercase tracking-wider text-white border border-white/[0.06] transition-colors"
-          >
-            Return to Question Bank
+          <Link href={`/sessions/${sessionId}`}>
+            <GlowButton variant="secondary" className="text-xs">
+              Return to Question Bank
+            </GlowButton>
           </Link>
         </div>
       </div>
@@ -100,112 +101,122 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
     <div className="flex-1 flex flex-col min-h-screen bg-[var(--background)]">
       <Header />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:px-8 space-y-10 animate-fade-in">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:px-8 space-y-10 animate-fade-in relative z-10">
         
         {/* Navigation & actions Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Link
             href={`/sessions/${sessionId}`}
-            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.5} /> Back to Question Bank
           </Link>
 
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0c0c0e] border border-white/[0.06] hover:bg-zinc-900 text-[10px] font-bold uppercase tracking-wider text-zinc-300 hover:text-white rounded-xl transition-all cursor-pointer"
-          >
-            <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} /> Return to Dashboard
+          <Link href="/dashboard">
+            <GlowButton variant="secondary" className="py-2 px-4 text-[10px]">
+              <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} /> Return to Dashboard
+            </GlowButton>
           </Link>
         </div>
 
         {/* Overview Score Card */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <MotionContainer className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Big score Dial */}
-          <div className="lg:col-span-4 premium-card p-8 text-center flex flex-col justify-center items-center relative">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block mb-6">Overall Score</span>
-            <div className="relative w-40 h-40 flex items-center justify-center bg-violet-500/5 rounded-full border border-violet-500/10">
-              <div className="absolute inset-1.5 rounded-full border border-white/[0.02]" />
-              <div className="absolute inset-1.5 rounded-full border-t border-violet-500 animate-spin duration-3000" />
+          <MotionItem className="lg:col-span-4 h-full">
+            <AnimatedCard className="text-center flex flex-col justify-center items-center relative h-full py-10" glowColor="rgba(139, 92, 246, 0.06)">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block mb-6">Overall Score</span>
               
-              <div className="text-center z-10">
-                <span className="text-4xl font-black text-white">{mock.overall_score}%</span>
+              <div className="relative w-40 h-40 flex items-center justify-center bg-violet-500/5 rounded-full border border-violet-500/10">
+                <div className="absolute inset-1.5 rounded-full border border-white/[0.01]" />
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                  className="absolute inset-1.5 rounded-full border-t border-violet-550" 
+                />
+                
+                <div className="text-center z-10">
+                  <span className="text-4xl font-black text-white">{mock.overall_score}%</span>
+                </div>
               </div>
-            </div>
-            
-            {/* Hiring recommendation status card */}
-            <div className={`mt-8 px-6 py-2 border rounded-full text-[10px] font-bold tracking-wider uppercase ${recStyles}`}>
-              Recommendation: {rec}
-            </div>
-          </div>
+              
+              {/* Hiring recommendation status card */}
+              <div className={`mt-8 px-6 py-2 border rounded-full text-[10px] font-bold tracking-wider uppercase ${recStyles}`}>
+                Recommendation: {rec}
+              </div>
+            </AnimatedCard>
+          </MotionItem>
 
           {/* Report summary overview */}
-          <div className="lg:col-span-8 premium-card p-8 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
-                <Award className="w-5 h-5 text-violet-400" strokeWidth={1.5} /> Interview Summary Report
-              </h2>
-              <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium">
-                {report.overall_summary}
-              </p>
-            </div>
+          <MotionItem className="lg:col-span-8 h-full">
+            <AnimatedCard className="p-8 flex flex-col justify-between space-y-6 h-full" glowColor="rgba(139, 92, 246, 0.04)">
+              <div className="space-y-4">
+                <h2 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
+                  <Award className="w-5 h-5 text-violet-400" strokeWidth={1.5} /> Interview Summary Report
+                </h2>
+                <p className="text-zinc-455 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium">
+                  {report.overall_summary}
+                </p>
+              </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/[0.04] pt-6">
-              <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03]">
-                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Total Questions</span>
-                <span className="text-base font-black text-zinc-200 mt-1 block">{mock.question_count}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/[0.04] pt-6">
+                <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03] hover:border-white/[0.06] transition-colors">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Total Questions</span>
+                  <span className="text-base font-black text-zinc-200 mt-1 block">{mock.question_count}</span>
+                </div>
+                <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03] hover:border-white/[0.06] transition-colors">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Mix Focus</span>
+                  <span className="text-base font-black text-zinc-200 mt-1 block capitalize">{mock.question_mix}</span>
+                </div>
+                <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03] hover:border-white/[0.06] transition-colors">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Timer Limit</span>
+                  <span className="text-base font-black text-zinc-200 mt-1 block">
+                    {mock.time_limit_per_question ? `${mock.time_limit_per_question}s` : 'None'}
+                  </span>
+                </div>
+                <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03] hover:border-white/[0.06] transition-colors">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Finished On</span>
+                  <span className="text-base font-black text-zinc-200 mt-1 block truncate">
+                    {mock.completed_at ? new Date(mock.completed_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
               </div>
-              <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03]">
-                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Mix Focus</span>
-                <span className="text-base font-black text-zinc-200 mt-1 block capitalize">{mock.question_mix}</span>
-              </div>
-              <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03]">
-                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Timer Limit</span>
-                <span className="text-base font-black text-zinc-200 mt-1 block">
-                  {mock.time_limit_per_question ? `${mock.time_limit_per_question}s` : 'None'}
-                </span>
-              </div>
-              <div className="bg-[#0c0c0e]/30 p-4 rounded-xl border border-white/[0.03]">
-                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Finished On</span>
-                <span className="text-base font-black text-zinc-200 mt-1 block truncate">
-                  {mock.completed_at ? new Date(mock.completed_at).toLocaleDateString() : 'N/A'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
+            </AnimatedCard>
+          </MotionItem>
+        </MotionContainer>
 
         {/* Spider Chart & Strengths / Gaps row */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <MotionContainer className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Radar Chart Display */}
-          <div className="lg:col-span-5 premium-card p-6 flex flex-col justify-center min-h-[350px]">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block mb-6 text-center">Category Scorecard</span>
-            <div className="w-full h-60">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart 
-                  cx="50%" 
-                  cy="50%" 
-                  outerRadius="65%" 
-                  data={chartData}
-                  margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
-                >
-                  <PolarGrid stroke="rgba(255,255,255,0.03)" />
-                  <PolarAngleAxis dataKey="subject" stroke="#a1a1aa" fontSize={9} fontWeight={700} />
-                  <PolarRadiusAxis angle={30} domain={[0, 10]} stroke="rgba(255,255,255,0.05)" tickCount={6} />
-                  <Radar name="Candidate" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.15} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#09090b', borderColor: 'rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '12px' }}
-                    labelStyle={{ color: '#f4f4f5', fontWeight: 800 }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          <MotionItem className="lg:col-span-5 h-full">
+            <AnimatedCard className="flex flex-col justify-center min-h-[350px] h-full" glowColor="rgba(139, 92, 246, 0.04)">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block mb-6 text-center">Category Scorecard</span>
+              <div className="w-full h-60">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart 
+                    cx="50%" 
+                    cy="50%" 
+                    outerRadius="65%" 
+                    data={chartData}
+                    margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                  >
+                    <PolarGrid stroke="rgba(255,255,255,0.03)" />
+                    <PolarAngleAxis dataKey="subject" stroke="#a1a1aa" fontSize={9} fontWeight={700} />
+                    <PolarRadiusAxis angle={30} domain={[0, 10]} stroke="rgba(255,255,255,0.05)" tickCount={6} />
+                    <Radar name="Candidate" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.15} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#09090b', borderColor: 'rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '12px' }}
+                      labelStyle={{ color: '#f4f4f5', fontWeight: 800 }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </AnimatedCard>
+          </MotionItem>
 
           {/* Top Strengths & Critical Gaps list cards */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <MotionItem className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6 h-full">
             {/* Strengths */}
-            <div className="premium-card p-6 space-y-4">
+            <AnimatedCard className="space-y-4 h-full" glowColor="rgba(16, 185, 129, 0.04)">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                 <CheckCircle className="w-4 h-4" strokeWidth={1.5} /> Top Strengths
               </h3>
@@ -217,10 +228,10 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
                   </li>
                 ))}
               </ul>
-            </div>
+            </AnimatedCard>
 
             {/* Critical Gaps */}
-            <div className="premium-card p-6 space-y-4">
+            <AnimatedCard className="space-y-4 h-full" glowColor="rgba(245, 158, 11, 0.04)">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4" strokeWidth={1.5} /> Critical Gaps
               </h3>
@@ -232,13 +243,13 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
                   </li>
                 ))}
               </ul>
-            </div>
-          </div>
-        </section>
+            </AnimatedCard>
+          </MotionItem>
+        </MotionContainer>
 
         {/* Best & Weakest answers row */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="premium-card p-6 space-y-4 border-emerald-500/[0.04]">
+          <AnimatedCard className="space-y-4" glowColor="rgba(16, 185, 129, 0.03)">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
               <Star className="w-4 h-4" strokeWidth={1.5} /> Strongest Response
             </h3>
@@ -249,9 +260,9 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
                 <p>{report.best_answer.reason}</p>
               </div>
             </div>
-          </div>
+          </AnimatedCard>
 
-          <div className="premium-card p-6 space-y-4 border-red-500/[0.04]">
+          <AnimatedCard className="space-y-4" glowColor="rgba(239, 68, 68, 0.03)">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" strokeWidth={1.5} /> Area to Focus Most
             </h3>
@@ -262,11 +273,11 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
                 <p>{report.weakest_answer.reason}</p>
               </div>
             </div>
-          </div>
+          </AnimatedCard>
         </section>
 
         {/* Roadmap Table list */}
-        <section className="premium-card p-6 space-y-5">
+        <AnimatedCard className="space-y-5" glowColor="rgba(139, 92, 246, 0.03)">
           <h3 className="text-[10px] font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4" strokeWidth={1.5} /> Improvement Roadmap Suggestions
           </h3>
@@ -300,7 +311,7 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
           <div className="hidden sm:block overflow-x-auto w-full">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-white/[0.04] text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-white/[0.04] text-zinc-550 font-bold uppercase tracking-widest text-[9px]">
                   <th className="pb-3 pr-4">Area Focus</th>
                   <th className="pb-3 pr-4">Suggestion Description</th>
                   <th className="pb-3 text-right">Priority</th>
@@ -313,7 +324,7 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
                   return (
                     <tr key={idx} className="hover:bg-white/[0.01] transition-colors">
                       <td className="py-3.5 pr-4 font-bold text-zinc-200 capitalize">{item.area}</td>
-                      <td className="py-3.5 pr-4 leading-relaxed">{item.suggestion}</td>
+                      <td className="py-3.5 pr-4 leading-relaxed font-semibold">{item.suggestion}</td>
                       <td className="py-3.5 text-right">
                         <span className={`inline-flex px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider border ${
                           isHigh
@@ -331,7 +342,7 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
               </tbody>
             </table>
           </div>
-        </section>
+        </AnimatedCard>
 
         {/* Detailed Question Review List */}
         <section className="space-y-5">
@@ -354,7 +365,7 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
               if (ans.was_skipped) {
                 typeLabel += " (Skipped)";
                 borderClass = "border-white/[0.04] opacity-80";
-                scoreColor = "text-zinc-500 bg-zinc-900/30 border-white/[0.04]";
+                scoreColor = "text-zinc-550 bg-zinc-900/30 border-white/[0.04]";
               } else if (ans.was_timed_out) {
                 typeLabel += " (Timed Out)";
                 borderClass = "border-white/[0.04] opacity-80";
@@ -362,7 +373,7 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
               }
 
               return (
-                <div key={ans.id} className={`premium-card overflow-hidden ${borderClass} ${isExpanded ? 'accordion-premium-active' : ''}`}>
+                <div key={ans.id} className={`premium-card overflow-hidden transition-all duration-300 ${borderClass} ${isExpanded ? 'accordion-premium-active' : ''}`}>
                   <div
                     onClick={() => toggleQuestion(idx)}
                     className="p-5 flex items-start gap-4 cursor-pointer select-none"
@@ -382,60 +393,68 @@ export default function MockReportPage({ params }: { params: Promise<{ id: strin
                     </div>
 
                     <div className="flex items-center gap-3 self-center">
-                      {/* Circle score */}
                       <div className={`px-2.5 py-1 text-[10px] font-black rounded-lg border flex items-center justify-center ${scoreColor}`}>
                         {ans.was_skipped ? '0/10' : ans.was_timed_out ? '1/10' : `${ans.per_question_score}/10`}
                       </div>
-                      <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-250 ${isExpanded ? 'rotate-180' : ''}`} strokeWidth={1.5} />
+                      <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-violet-450' : ''}`} strokeWidth={1.5} />
                     </div>
                   </div>
 
-                  {isExpanded && (
-                    <div className="px-5 pb-6 border-t border-white/[0.03] pt-5 space-y-6 text-xs sm:text-sm animate-fade-in">
-                      {/* Submitted response */}
-                      <div className="space-y-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Your Response</span>
-                        <blockquote className="text-zinc-300 bg-[#0c0c0e] p-4 border-l-2 border-violet-500 rounded-r-xl leading-relaxed font-medium italic">
-                          {ans.was_skipped ? "[Skipped this question]" : ans.was_timed_out ? "[Question timed out before submission]" : `"${ans.user_answer}"`}
-                        </blockquote>
-                      </div>
-
-                      {/* Question AI Evaluation Feedback */}
-                      {!ans.was_skipped && ans.per_question_feedback && (
-                        <>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">Strengths</span>
-                              <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 leading-relaxed font-medium">
-                                {ans.per_question_feedback.strengths.map((str, sIdx) => (
-                                  <li key={sIdx} className="marker:text-zinc-650">{str}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">Key Missed Points</span>
-                              {ans.per_question_feedback.missed_points.length === 0 ? (
-                                <p className="text-zinc-500 text-xs italic pl-0.5">None! Excellent coverage of all key points.</p>
-                              ) : (
-                                <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 leading-relaxed font-medium">
-                                  {ans.per_question_feedback.missed_points.map((miss, mIdx) => (
-                                    <li key={mIdx} className="marker:text-zinc-650">{miss}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        <div className="px-5 pb-6 border-t border-white/[0.03] pt-5 space-y-6 text-xs sm:text-sm">
+                          {/* Submitted response */}
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Your Response</span>
+                            <blockquote className="text-zinc-300 bg-[#0c0c0e] p-4 border-l-2 border-violet-500 rounded-r-xl leading-relaxed font-semibold italic">
+                              {ans.was_skipped ? "[Skipped this question]" : ans.was_timed_out ? "[Question timed out before submission]" : `"${ans.user_answer}"`}
+                            </blockquote>
                           </div>
 
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">AI-Improved Response Draft</span>
-                            <div className="p-4 bg-[#0c0c0e] border border-white/[0.04] rounded-xl text-zinc-400 text-xs leading-relaxed max-h-52 overflow-y-auto whitespace-pre-line font-medium">
-                              {ans.per_question_feedback.improved_answer}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
+                          {/* Question AI Evaluation Feedback */}
+                          {!ans.was_skipped && ans.per_question_feedback && (
+                            <>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="space-y-2.5">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">Strengths</span>
+                                  <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 leading-relaxed font-semibold">
+                                    {ans.per_question_feedback.strengths.map((str, sIdx) => (
+                                      <li key={sIdx} className="marker:text-zinc-600">{str}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="space-y-2.5">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">Key Missed Points</span>
+                                  {ans.per_question_feedback.missed_points.length === 0 ? (
+                                    <p className="text-zinc-500 text-xs italic pl-0.5">None! Excellent coverage of all key points.</p>
+                                  ) : (
+                                    <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 leading-relaxed font-semibold">
+                                      {ans.per_question_feedback.missed_points.map((miss, mIdx) => (
+                                        <li key={mIdx} className="marker:text-zinc-600">{miss}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="space-y-2.5">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block">AI-Improved Response Draft</span>
+                                <div className="p-4 bg-[#0c0c0e] border border-white/[0.04] rounded-xl text-zinc-450 text-xs leading-relaxed max-h-52 overflow-y-auto whitespace-pre-line font-semibold">
+                                  {ans.per_question_feedback.improved_answer}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
