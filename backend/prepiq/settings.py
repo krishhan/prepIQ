@@ -15,20 +15,21 @@ load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DJANGO_DEV_MODE = os.environ.get('DJANGO_DEV_MODE', 'false').lower() == 'true'
 
 # Essential Environment Validation (Fail-Fast Startup)
-if not DEBUG:
-    missing_keys = []
-    if not os.environ.get('SECRET_KEY'):
-        missing_keys.append('SECRET_KEY')
-    if not os.environ.get('RESUME_ENCRYPTION_KEY'):
-        missing_keys.append('RESUME_ENCRYPTION_KEY')
-    if not os.environ.get('DATABASE_URL'):
-        missing_keys.append('DATABASE_URL')
-    if missing_keys:
-        raise ImproperlyConfigured(
-            f"FATAL: Missing essential environment variables for production: {', '.join(missing_keys)}"
-        )
+missing_keys = []
+if not os.environ.get('SECRET_KEY') and not DJANGO_DEV_MODE:
+    missing_keys.append('SECRET_KEY')
+if not os.environ.get('RESUME_ENCRYPTION_KEY') and not DJANGO_DEV_MODE:
+    missing_keys.append('RESUME_ENCRYPTION_KEY')
+if not DEBUG and not os.environ.get('DATABASE_URL'):
+    missing_keys.append('DATABASE_URL')
+
+if missing_keys:
+    raise ImproperlyConfigured(
+        f"FATAL: Missing essential environment variables: {', '.join(missing_keys)}"
+    )
 
 # Optional Integration validation
 if not os.environ.get('OPENROUTER_API_KEY'):
@@ -38,7 +39,12 @@ if not os.environ.get('OPENROUTER_API_KEY'):
         file=sys.stderr
     )
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-secret-key-12345')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DJANGO_DEV_MODE:
+        SECRET_KEY = 'django-insecure-dev-mode-default-secret-key-12345'
+    else:
+        raise ImproperlyConfigured("SECRET_KEY must be set in the environment unless DJANGO_DEV_MODE=true")
 
 ALLOWED_HOSTS = [
     host.strip() for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()
@@ -181,7 +187,7 @@ REST_FRAMEWORK = {
 
 # Simple JWT Configuration
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -229,7 +235,12 @@ if not DEBUG:
     SECURE_REFERRER_POLICY = 'origin-when-cross-origin'
 
 # Encryption Key
-RESUME_ENCRYPTION_KEY = os.environ.get('RESUME_ENCRYPTION_KEY', 'R6a3bvE_noMXZAHtrNPaNsKLq_3KUKVmztctWhZ6im4=')
+RESUME_ENCRYPTION_KEY = os.environ.get('RESUME_ENCRYPTION_KEY')
+if not RESUME_ENCRYPTION_KEY:
+    if DJANGO_DEV_MODE:
+        RESUME_ENCRYPTION_KEY = 'oHIgT2md1KKKtR_xOQ2foHD5MvZMQw5DusYJoKIAmv4='
+    else:
+        raise ImproperlyConfigured("RESUME_ENCRYPTION_KEY must be set in the environment unless DJANGO_DEV_MODE=true")
 
 # Celery Configuration
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')

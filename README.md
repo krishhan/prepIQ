@@ -50,6 +50,10 @@ SECURE_SSL_REDIRECT=True
 # Database Encryption
 RESUME_ENCRYPTION_KEY=your_fernet_256bit_key
 
+# Development mode (set to true ONLY for local dev to bypass fail-fast validation checks)
+# WARNING: MUST be unset or false in any production/deployment settings. Never copy to Render/Railway/Vercel/etc.
+DJANGO_DEV_MODE=false
+
 # Celery & Caching
 CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_BEAT_ENABLED=True

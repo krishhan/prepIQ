@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'src/lib/types';
-import { authApi, getAccessToken, clearTokens } from 'src/lib/api';
+import { authApi } from 'src/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -33,26 +33,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Initial user fetch on boot — only if we have a stored token
+  // Initial user fetch on boot
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = getAccessToken();
-      if (!token) {
-        // No token = definitely not logged in, skip the me() call entirely
-        setLoading(false);
-        return;
+      // 1. Unconditionally fetch CSRF token first
+      try {
+        await authApi.getCsrf();
+      } catch (csrfError) {
+        console.warn("Failed to retrieve CSRF token on boot:", csrfError);
       }
+
+      // 2. Fetch User Profile
       try {
         const u = await authApi.me();
         setUser(u);
       } catch (error: any) {
-        // Only clear token on explicit 401/403 (session truly invalid)
-        const status = error?.response?.status;
-        if (status === 401 || status === 403) {
-          clearTokens();
-          setUser(null);
-        }
-        // Network/CORS errors: keep the user null but don't clear the token
+        setUser(null);
       } finally {
         setLoading(false);
       }

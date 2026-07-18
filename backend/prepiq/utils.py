@@ -26,25 +26,25 @@ def check_rate_limit_and_lock(user, limit_type, limit_count, model_class):
     if not cache.add(lock_key, True, timeout=10):
         raise RateLimitExceeded("Another request is currently processing. Please try again in a few seconds.")
         
+    # 2. Check the rolling 24-hour limit
+    time_threshold = timezone.now() - timedelta(days=1)
+    
     try:
-        # 2. Check the rolling 24-hour limit
-        time_threshold = timezone.now() - timedelta(days=1)
-        
         # Performance/Database Optimization:
         # Use primary key sorting or direct filtering without filesort.
         if limit_type == 'mock':
             count = model_class.objects.filter(user=user, started_at__gte=time_threshold).count()
         else:
             count = model_class.objects.filter(user=user, created_at__gte=time_threshold).count()
-            
-        if count >= limit_count:
-            # Release lock immediately if rate limit is exceeded
-            cache.delete(lock_key)
-            raise RateLimitExceeded(f"Daily limit reached. You can only create {limit_count} {limit_type}s per 24 hours.")
     except Exception:
         # Ensure we release lock on any exception during verification
         cache.delete(lock_key)
         raise
+
+    if count >= limit_count:
+        # Release lock immediately if rate limit is exceeded
+        cache.delete(lock_key)
+        raise RateLimitExceeded(f"Daily limit reached. You can only create {limit_count} {limit_type}s per 24 hours.")
 
 def release_lock(user, limit_type):
     """

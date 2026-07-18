@@ -44,9 +44,6 @@ class SignupView(APIView):
             refresh_token = str(refresh)
 
             data = UserSerializer(user).data
-            # Return tokens in body so frontend can use Bearer auth cross-domain
-            data['access_token'] = access_token
-            data['refresh_token'] = refresh_token
 
             response = Response(data, status=status.HTTP_201_CREATED)
             set_auth_cookies(response, access_token, refresh_token)
@@ -77,9 +74,6 @@ class LoginView(APIView):
             refresh_token = str(refresh)
 
             data = UserSerializer(user).data
-            # Return tokens in body so frontend can use Bearer auth cross-domain
-            data['access_token'] = access_token
-            data['refresh_token'] = refresh_token
 
             response = Response(data, status=status.HTTP_200_OK)
             set_auth_cookies(response, access_token, refresh_token)
@@ -143,7 +137,7 @@ class TokenRefreshCookieView(APIView):
             except Exception:
                 pass
             
-            response = Response({"detail": "Token refreshed successfully.", "access_token": str(new_token.access_token)}, status=status.HTTP_200_OK)
+            response = Response({"detail": "Token refreshed successfully."}, status=status.HTTP_200_OK)
             set_auth_cookies(response, str(new_token.access_token), str(new_token))
             return response
         except Exception:
