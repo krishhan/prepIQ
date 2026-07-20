@@ -69,8 +69,8 @@ class PracticeAppTests(APITestCase):
 
     def test_question_confidence_auto_updates_on_practice(self):
         """
-        Verify that making a practice attempt automatically moves confidence level to 'needs_work'
-        if it was originally 'not_practiced'.
+        Verify that making a practice attempt returns HTTP 202, automatically moves confidence level to 'needs_work'
+        if it was originally 'not_practiced', and processes attempt asynchronously.
         """
         # Create confidence as 'not_practiced'
         confidence = QuestionConfidence.objects.create(
@@ -81,10 +81,9 @@ class PracticeAppTests(APITestCase):
 
         self.client.force_authenticate(user=self.user)
         
-        # Mock OpenRouter API call inside practice views.py
-        # To avoid making actual HTTP requests, we mock the evaluate_practice_answer helper
+        # Mock OpenRouter API call inside practice/tasks.py
         import unittest.mock as mock
-        with mock.patch('practice.views.evaluate_practice_answer') as mock_eval:
+        with mock.patch('practice.tasks.evaluate_practice_answer') as mock_eval:
             mock_eval.return_value = {
                 "score": 7,
                 "strengths": ["Clear speech"],
@@ -95,8 +94,16 @@ class PracticeAppTests(APITestCase):
 
             url = f"/api/questions/{self.question.id}/practice/"
             response = self.client.post(url, {"user_answer": "JavaScript handles async..."}, format='json')
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
             # Assert confidence updated to 'needs_work' automatically
             confidence.refresh_from_db()
             self.assertEqual(confidence.level, 'needs_work')
+
+            # Fetch attempt status via status endpoint
+            attempt_id = response.data['id']
+            status_url = f"/api/questions/attempts/{attempt_id}/status/"
+            status_res = self.client.get(status_url)
+            self.assertEqual(status_res.status_code, status.HTTP_200_OK)
+            self.assertEqual(status_res.data['status'], 'completed')
+            self.assertEqual(status_res.data['score'], 7)

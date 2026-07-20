@@ -51,14 +51,16 @@ export interface PracticeAttempt {
   id: number;
   question: number;
   user_answer: string;
-  score: number;
-  ai_feedback: {
+  score?: number | null;
+  status?: 'processing' | 'completed' | 'failed';
+  error_message?: string | null;
+  ai_feedback?: {
     score: number;
     strengths: string[];
     missed_points: string[];
     communication_quality: 'Poor' | 'Fair' | 'Good' | 'Excellent';
     improved_answer: string;
-  };
+  } | null;
   created_at: string;
 }
 

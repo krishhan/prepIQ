@@ -10,5 +10,5 @@ class QuestionConfidenceSerializer(serializers.ModelSerializer):
 class PracticeAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = PracticeAttempt
-        fields = ('id', 'question', 'user_answer', 'score', 'ai_feedback', 'created_at')
-        read_only_fields = ('id', 'question', 'score', 'ai_feedback', 'created_at')
+        fields = ('id', 'question', 'user_answer', 'score', 'ai_feedback', 'status', 'error_message', 'created_at')
+        read_only_fields = ('id', 'question', 'score', 'ai_feedback', 'status', 'error_message', 'created_at')

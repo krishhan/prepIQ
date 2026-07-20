@@ -4,10 +4,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from django.core.cache import cache
+from prepiq.utils import dispatch_task
 from resume_sessions.models import InterviewQuestion
-from resume_sessions.llm import evaluate_practice_answer
 from .models import QuestionConfidence, PracticeAttempt
 from .serializers import QuestionConfidenceSerializer, PracticeAttemptSerializer
+from .tasks import evaluate_practice_attempt_task
 
 logger = logging.getLogger(__name__)
 
@@ -54,31 +56,14 @@ class PracticeAttemptView(APIView):
         if not user_answer:
             return Response({"detail": "Answer text cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Retrieve job role and experience level from session for LLM context
-        session = question.session
-        
-        # Call LLM evaluator
-        try:
-            ai_feedback = evaluate_practice_answer(
-                question_text=question.question_text,
-                ideal_outline=question.ideal_answer_outline,
-                user_answer=user_answer,
-                job_role=session.job_role,
-                experience_level=session.experience_level
-            )
-        except Exception as e:
-            logger.error("AI practice evaluation failed: %s", str(e), exc_info=e)
-            return Response({"detail": "AI Evaluation failed. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        score = ai_feedback.get('score', 5)
-        
-        # Save attempt in DB
+        # Save attempt in DB with processing status
         attempt = PracticeAttempt.objects.create(
             question=question,
             user=request.user,
             user_answer=user_answer,
-            score=score,
-            ai_feedback=ai_feedback
+            score=None,
+            ai_feedback=None,
+            status='processing'
         )
 
         # Auto-update question confidence if not practiced yet
@@ -91,8 +76,32 @@ class PracticeAttemptView(APIView):
             confidence.level = 'needs_work'
             confidence.save()
 
+        # Trigger background Celery evaluation task
+        dispatch_task(evaluate_practice_attempt_task, attempt.id)
+
         serializer = PracticeAttemptSerializer(attempt)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+class PracticeAttemptStatusView(APIView):
+    """
+    GET: Polls practice attempt evaluation status.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            attempt = PracticeAttempt.objects.get(id=pk, user=request.user)
+        except PracticeAttempt.DoesNotExist:
+            return Response({"detail": "Practice attempt not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Self-healing: if stuck in processing, re-dispatch evaluation task
+        if attempt.status == 'processing':
+            heal_key = f"heal_practice_{attempt.id}"
+            if cache.add(heal_key, True, timeout=10):
+                dispatch_task(evaluate_practice_attempt_task, attempt.id)
+
+        serializer = PracticeAttemptSerializer(attempt)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class PracticeAttemptHistoryView(APIView):
     """

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, useRef, use } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from 'src/components/Header';
@@ -25,6 +25,42 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
   const [latestAttempt, setLatestAttempt] = useState<PracticeAttempt | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const stopPolling = () => {
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+  };
+
+  const startStatusPolling = (attemptId: number) => {
+    stopPolling();
+    pollTimerRef.current = setInterval(async () => {
+      try {
+        const updatedAttempt = await questionsApi.getAttemptStatus(attemptId);
+        setLatestAttempt(updatedAttempt);
+        setAttempts(prev => prev.map(a => a.id === updatedAttempt.id ? updatedAttempt : a));
+
+        if (updatedAttempt.status !== 'processing') {
+          stopPolling();
+          setSubmitting(false);
+          if (updatedAttempt.status === 'failed') {
+            setError(updatedAttempt.error_message || "AI evaluation failed. Please try again.");
+          }
+        }
+      } catch (pollErr) {
+        console.error("Failed to poll attempt status:", pollErr);
+      }
+    }, 2000);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -46,8 +82,14 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
       const attemptsData = await questionsApi.attempts(questionId);
       setAttempts(attemptsData);
       if (attemptsData.length > 0) {
-        setLatestAttempt(attemptsData[0]); // sorted by created_at desc in backend
+        setLatestAttempt(attemptsData[0]);
         setUserAnswer(attemptsData[0].user_answer);
+
+        // Resume polling if the latest attempt is still processing
+        if (attemptsData[0].status === 'processing') {
+          setSubmitting(true);
+          startStatusPolling(attemptsData[0].id);
+        }
       }
     } catch (err) {
       setError("Failed to load question details or past attempts.");
@@ -70,28 +112,19 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
     setError(null);
     setSubmitting(true);
     try {
-      const newAttempt = await questionsApi.practice(questionId, userAnswer);
-      setLatestAttempt(newAttempt);
-      setAttempts([newAttempt, ...attempts]);
+      const initialAttempt = await questionsApi.practice(questionId, userAnswer);
+      setLatestAttempt(initialAttempt);
+      setAttempts(prev => [initialAttempt, ...prev.filter(a => a.id !== initialAttempt.id)]);
+
+      if (initialAttempt.status === 'processing') {
+        startStatusPolling(initialAttempt.id);
+      } else {
+        setSubmitting(false);
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || "Failed to submit answer for AI evaluation.");
-    } finally {
       setSubmitting(false);
     }
-  };
-
-  // Stagger animation definitions
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } }
   };
 
   return (
@@ -209,7 +242,39 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
               {/* AI Feedback panel */}
               <MotionItem className="lg:col-span-5">
                 <AnimatePresence mode="wait">
-                  {latestAttempt ? (
+                  {latestAttempt?.status === 'processing' ? (
+                    <motion.div
+                      key="feedback-processing"
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <AnimatedCard glowColor="rgba(139, 92, 246, 0.05)" className="text-center flex flex-col justify-center items-center h-full min-h-[320px]">
+                        <RefreshCw className="w-8 h-8 text-violet-450 animate-spin mb-4" strokeWidth={1.5} />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">Evaluating Answer...</h3>
+                        <p className="text-zinc-500 text-xs mt-2 max-w-xs leading-relaxed font-semibold">
+                          Our AI Coach is currently analyzing your communication quality and generating detailed feedback.
+                        </p>
+                      </AnimatedCard>
+                    </motion.div>
+                  ) : latestAttempt?.status === 'failed' ? (
+                    <motion.div
+                      key="feedback-failed"
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <AnimatedCard glowColor="rgba(239, 68, 68, 0.05)" className="text-center flex flex-col justify-center items-center h-full min-h-[320px]">
+                        <AlertCircle className="w-8 h-8 text-red-400 mb-4" strokeWidth={1.5} />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">Evaluation Failed</h3>
+                        <p className="text-red-400 text-xs mt-2 max-w-xs leading-relaxed font-semibold">
+                          {latestAttempt.error_message || "AI evaluation failed. Please try again."}
+                        </p>
+                      </AnimatedCard>
+                    </motion.div>
+                  ) : latestAttempt && latestAttempt.ai_feedback ? (
                     <motion.div
                       key="feedback-present"
                       initial={{ opacity: 0, scale: 0.98 }}
@@ -240,7 +305,7 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
                             <CheckCircle className="w-3.5 h-3.5" strokeWidth={1.5} /> Strengths
                           </span>
                           <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 font-semibold leading-relaxed">
-                            {latestAttempt.ai_feedback.strengths.map((str, idx) => (
+                            {(latestAttempt.ai_feedback.strengths || []).map((str, idx) => (
                               <li key={idx} className="marker:text-zinc-600">{str}</li>
                             ))}
                           </ul>
@@ -251,7 +316,7 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
                           <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
                             <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.5} /> Key Gaps / Missed Points
                           </span>
-                          {latestAttempt.ai_feedback.missed_points.length === 0 ? (
+                          {!latestAttempt.ai_feedback.missed_points || latestAttempt.ai_feedback.missed_points.length === 0 ? (
                             <p className="text-zinc-550 text-xs pl-0.5 italic font-semibold">None! Excellent coverage of all key points.</p>
                           ) : (
                             <ul className="list-disc list-inside text-zinc-400 text-xs space-y-1.5 pl-0.5 font-semibold leading-relaxed">
@@ -314,10 +379,24 @@ export default function PracticeQuestionPage({ params }: { params: Promise<{ id:
                           <p className="text-zinc-350 line-clamp-1 italic font-medium">"{attempt.user_answer}"</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-zinc-500">Communication: <strong className="text-zinc-300 font-bold">{attempt.ai_feedback.communication_quality}</strong></span>
-                          <div className="px-2.5 py-1 bg-violet-500/5 border border-violet-500/10 text-violet-400 font-extrabold rounded-lg text-[10px] uppercase tracking-wider">
-                            {attempt.ai_feedback.score} / 10
-                          </div>
+                          {attempt.status === 'processing' ? (
+                            <span className="text-xs text-violet-400 font-bold flex items-center gap-1">
+                              <RefreshCw className="w-3 h-3 animate-spin" strokeWidth={1.5} /> Evaluating...
+                            </span>
+                          ) : attempt.status === 'failed' ? (
+                            <span className="text-xs text-red-400 font-bold flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" strokeWidth={1.5} /> Evaluation Failed
+                            </span>
+                          ) : (
+                            <>
+                              <span className="text-xs text-zinc-500">
+                                Communication: <strong className="text-zinc-300 font-bold">{attempt.ai_feedback?.communication_quality || 'Good'}</strong>
+                              </span>
+                              <div className="px-2.5 py-1 bg-violet-500/5 border border-violet-500/10 text-violet-400 font-extrabold rounded-lg text-[10px] uppercase tracking-wider">
+                                {attempt.ai_feedback?.score ?? attempt.score ?? 5} / 10
+                              </div>
+                            </>
+                          )}
                         </div>
                       </motion.div>
                     ))}

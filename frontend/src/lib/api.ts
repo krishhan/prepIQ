@@ -192,6 +192,11 @@ export const questionsApi = {
     return response.data;
   },
 
+  getAttemptStatus: async (attemptId: number): Promise<PracticeAttempt> => {
+    const response = await api.get(`/api/questions/attempts/${attemptId}/status/`);
+    return response.data;
+  },
+
   attempts: async (questionId: number): Promise<PracticeAttempt[]> => {
     const response = await api.get(`/api/questions/${questionId}/attempts/`);
     return response.data;
