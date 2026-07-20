@@ -11,6 +11,9 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// In-memory cache for CSRF token (essential for cross-domain frontend/backend deployments where document.cookie cannot read backend domain cookies)
+let cachedCsrfToken: string | null = null;
+
 // Helper to get cookie value with an exact-match parser
 export function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -24,6 +27,10 @@ export function getCookie(name: string): string | null {
   return null;
 }
 
+export function getCsrfToken(): string | null {
+  return getCookie('csrftoken') || cachedCsrfToken;
+}
+
 export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -31,10 +38,17 @@ export const api = axios.create({
 
 // Request Interceptor: Attach X-CSRFToken header for mutating (non-GET/safe) requests
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const method = config.method?.toUpperCase();
     if (method && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS' && method !== 'TRACE') {
-      const csrfToken = getCookie('csrftoken');
+      let csrfToken = getCsrfToken();
+      if (!csrfToken) {
+        try {
+          csrfToken = await authApi.getCsrf();
+        } catch (e) {
+          // ignore
+        }
+      }
       if (csrfToken) {
         config.headers['X-CSRFToken'] = csrfToken;
       }
@@ -60,7 +74,14 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const csrfToken = getCookie('csrftoken');
+        let csrfToken = getCsrfToken();
+        if (!csrfToken) {
+          try {
+            csrfToken = await authApi.getCsrf();
+          } catch (e) {
+            // ignore
+          }
+        }
         const headers: Record<string, string> = {};
         if (csrfToken) {
           headers['X-CSRFToken'] = csrfToken;
@@ -92,8 +113,17 @@ api.interceptors.response.use(
 // --- API Methods ---
 
 export const authApi = {
-  getCsrf: async (): Promise<void> => {
-    await api.get('/api/auth/csrf/');
+  getCsrf: async (): Promise<string | null> => {
+    try {
+      const response = await api.get('/api/auth/csrf/');
+      if (response.data?.csrfToken) {
+        cachedCsrfToken = response.data.csrfToken;
+      }
+      return cachedCsrfToken;
+    } catch (err) {
+      console.warn('Failed to fetch CSRF token:', err);
+      return null;
+    }
   },
 
   signup: async (data: any): Promise<User> => {
