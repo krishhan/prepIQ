@@ -166,6 +166,12 @@ class ResumeSessionStatusView(APIView):
         except ResumeSession.DoesNotExist:
             return Response({"detail": "Session not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        # Self-healing: if stuck in processing, re-dispatch the question generation task
+        if session.status == 'processing' and not session.questions.exists():
+            heal_key = f"heal_session_{session.id}"
+            if cache.add(heal_key, True, timeout=10):
+                dispatch_task(generate_questions_task, session.id)
+
         return Response({
             "status": session.status,
             "error_message": session.error_message

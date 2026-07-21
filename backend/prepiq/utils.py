@@ -53,6 +53,29 @@ def release_lock(user, limit_type):
     lock_key = f"lock_{user.id}_{limit_type}"
     cache.delete(lock_key)
 
+def is_celery_worker_active():
+    """
+    Checks if there are any active Celery workers listening on the queue.
+    Caches the status for 60 seconds to avoid request blocking overhead.
+    """
+    from django.core.cache import cache
+    
+    cached_status = cache.get('celery_worker_active')
+    if cached_status is not None:
+        return cached_status
+
+    from prepiq.celery import app
+    try:
+        # Use a short timeout of 0.2s to minimize latency
+        inspect = app.control.inspect(timeout=0.2)
+        ping_result = inspect.ping()
+        is_active = bool(ping_result)
+    except Exception:
+        is_active = False
+
+    cache.set('celery_worker_active', is_active, 60)
+    return is_active
+
 def dispatch_task(task_func, *args, **kwargs):
     """
     Helper to dispatch a Celery task asynchronously.
@@ -69,13 +92,20 @@ def dispatch_task(task_func, *args, **kwargs):
     # Determine if we are running in Django test mode
     is_testing = 'test' in sys.argv or 'test_coverage' in sys.argv
 
-    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+    is_eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
+    if not is_eager and not is_testing:
+        # Fall back to eager execution in-process if no Celery workers are currently active
+        if not is_celery_worker_active():
+            logger.warning("No active Celery workers detected. Falling back to eager background thread execution.")
+            is_eager = True
+
+    if is_eager:
         if is_testing:
             # Execute synchronously in the same thread during tests to avoid SQLite database locks
             _thread_locals.request_id = kwargs.get('_request_id', '-')
             task_func(*args, **kwargs)
         else:
-            # Local development background thread fallback with retry support
+            # Local development / single-service deployment background thread fallback with retry support
             def thread_wrapper():
                 from celery.exceptions import Retry
                 import time
